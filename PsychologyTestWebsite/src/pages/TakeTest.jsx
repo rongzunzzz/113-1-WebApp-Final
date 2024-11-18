@@ -8,11 +8,13 @@ export default function TakeTest() {
   const [currentTakingTest, setCurrentTakingTest] = useState(null);
   const [answers, setAnswers] = useState({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [showHeaderFooter, setShowHeaderFooter] = useState(true);
 
   const startTest = (test) => {
     setCurrentTakingTest(test);
     setAnswers({});
     setCurrentQuestionIndex(0);
+    setShowHeaderFooter(false);
   };
 
   const goToNextQuestion = () => {
@@ -46,24 +48,25 @@ export default function TakeTest() {
     setCurrentTakingTest(null);
     setAnswers({});
     setCurrentQuestionIndex(0);
+    setShowHeaderFooter(true);
     alert('測驗已完成！');
   };
 
   if (!currentTakingTest) {
     return (
-      <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">選擇測驗</h2>
+      <div className="bg-custom-primary p-6 rounded-lg border border-gray-200">
+        <h2 className="text-xl font-semibold text-custom-black mb-4">選擇測驗</h2>
         {savedTests.length > 0 ? (
           <div className="space-y-4">
             {savedTests.map((test) => (
               <div key={test.id} 
-                className="flex justify-between items-center p-4 bg-white rounded-lg border border-gray-200 group"
+                className="flex justify-between items-center p-4 bg-custom-primary rounded-lg border border-gray-200 group"
               >
-                <span className="font-medium">{test.title}</span>
+                <span className="font-medium text-custom-black">{test.title}</span>
                 <div className="flex items-center space-x-2">
                   <Button 
                     onClick={() => startTest(test)}
-                    className="bg-green-600 hover:bg-green-700 text-white"
+                    className="bg-custom-secondary hover:bg-black hover:text-white rounded-full"
                   >
                     開始測驗
                   </Button>
@@ -79,7 +82,7 @@ export default function TakeTest() {
             ))}
           </div>
         ) : (
-          <p className="text-gray-500">目前沒有可用的測驗</p>
+          <p className="text-custom-black">目前沒有可用的測驗</p>
         )}
       </div>
     );
@@ -104,7 +107,7 @@ export default function TakeTest() {
       
       <div className="relative z-10">
         <div className="mb-6 flex justify-between items-center">
-          <span className="text-lg font-medium text-gray-700">
+          <span className="text-lg font-medium text-custom-black">
             問題 {currentQuestionIndex + 1} / {currentTakingTest.questions.length}
           </span>
           <div className="flex gap-2">
@@ -123,8 +126,8 @@ export default function TakeTest() {
           </div>
         </div>
 
-        <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-8">
+        <div className="bg-custom-primary p-8 rounded-2xl shadow-lg border border-gray-100">
+          <h2 className="text-2xl font-semibold text-custom-black mb-8">
             {currentQuestion.question}
           </h2>
           
@@ -167,13 +170,22 @@ export default function TakeTest() {
             </Button>
             <Button 
               onClick={isLastQuestion ? submitTest : goToNextQuestion}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              style={{ backgroundColor: 'rgb(255, 229, 0)', color: 'black' }}
+              className="hover:bg-yellow-600"
             >
               {isLastQuestion ? '提交測驗' : '下一題'}
             </Button>
           </div>
         </div>
       </div>
+
+      {showHeaderFooter && (
+        <footer className="bg-custom-secondary border-t border-gray-100 mt-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <p className="text-center text-custom-black">© 2024 心理測驗系統. All rights reserved.</p>
+          </div>
+        </footer>
+      )}
     </div>
   );
 } 

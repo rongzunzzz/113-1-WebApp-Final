@@ -125,8 +125,8 @@ export default function CreateTest() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">新增測驗</h2>
+      <div className="bg-custom-primary p-6 rounded-lg">
+        <h2 className="text-xl font-semibold text-custom-black mb-4">新增測驗</h2>
         <div className="mb-6 space-y-4">
           <Input
             placeholder="測驗標題"
@@ -178,7 +178,7 @@ export default function CreateTest() {
             <h3 className="text-lg font-medium mb-4">已新增的問題：</h3>
             <div className="space-y-4">
               {currentTest.questions.map((q, idx) => (
-                <div key={idx} className="bg-white p-4 rounded-lg border border-gray-200">
+                <div key={idx} className="bg-white p-4 rounded-lg border border-black">
                   <div className="flex justify-between items-start">
                     <p className="font-medium">{`${idx + 1}. ${q.question}`}</p>
                   </div>
@@ -195,8 +195,8 @@ export default function CreateTest() {
           </div>
         )}
 
-        <div className="bg-white p-6 rounded-lg border border-gray-200">
-          <h3 className="text-lg font-medium mb-4">新增問題</h3>
+        <div className="bg-gray-100 p-6 rounded-lg">
+          <h3 className="text-lg font-medium mb-4 text-custom-black">新增問題</h3>
           <div className="space-y-4">
             <Input
               placeholder="問題"
@@ -234,7 +234,7 @@ export default function CreateTest() {
                 type="button"
                 variant="outline"
                 onClick={addOption}
-                className="w-full mt-2 text-green-600 hover:text-green-700"
+                className="w-full mt-2 bg-gray-200 hover:bg-gray-300 text-custom-black rounded-full"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 新增選項
@@ -244,14 +244,14 @@ export default function CreateTest() {
             <div className="mt-4 space-x-4">
               <Button 
                 onClick={addQuestion}
-                className="bg-green-600 hover:bg-green-700 text-white inline-flex items-center"
+                className="bg-gray-200 hover:bg-gray-300 text-custom-black rounded-full inline-flex items-center"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 新增問題
               </Button>
               <Button 
                 onClick={saveTest}
-                className="bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center"
+                className="bg-custom-secondary hover:bg-black hover:text-white rounded-full inline-flex items-center"
               >
                 <Save className="h-4 w-4 mr-2" />
                 儲存測驗

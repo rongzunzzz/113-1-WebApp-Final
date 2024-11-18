@@ -1,0 +1,18 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* 添加自定義顏色 */
+.bg-custom-primary {
+  background-color: rgb(242, 241, 255);
+}
+
+.bg-custom-secondary {
+  background-color: rgb(255, 229, 0);
+}
+
+.text-custom-black {
+  color: rgb(0, 0, 0);
+}
+
+

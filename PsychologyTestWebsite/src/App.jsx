@@ -12,6 +12,7 @@ const PsychologyTestApp = () => {
   const [currentTakingTest, setCurrentTakingTest] = useState(null);
   const [answers, setAnswers] = useState({});
   const [testResults, setTestResults] = useState([]);
+  const [showHeaderFooter, setShowHeaderFooter] = useState(true);
 
   // 新增問題
   const addQuestion = () => {
@@ -47,6 +48,7 @@ const PsychologyTestApp = () => {
   const startTest = (test) => {
     setCurrentTakingTest(test);
     setAnswers({});
+    setShowHeaderFooter(false);
   };
 
   // 提交答案
@@ -63,14 +65,15 @@ const PsychologyTestApp = () => {
     setTestResults([...testResults, result]);
     setCurrentTakingTest(null);
     setAnswers({});
+    setShowHeaderFooter(true);
     alert('測驗已完成！');
   };
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-custom-primary">
         {/* 導航欄 */}
-        <nav className="bg-white shadow-sm sticky top-0 z-50">
+        <nav className="bg-custom-secondary shadow-sm sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               <div className="flex items-center">
@@ -87,7 +90,7 @@ const PsychologyTestApp = () => {
 
         {/* 主要內容區 */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100">
+          <div className="bg-custom-primary rounded-2xl shadow-lg border border-black">
             <div className="p-6">
               <Routes>
                 <Route 
@@ -131,11 +134,13 @@ const PsychologyTestApp = () => {
         </main>
 
         {/* 頁腳 */}
-        <footer className="bg-white border-t border-gray-100 mt-8">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <p className="text-center text-gray-500">© 2024 心理測驗系統. All rights reserved.</p>
-          </div>
-        </footer>
+        {showHeaderFooter && (
+          <footer className="bg-custom-secondary border-t border-gray-100 mt-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              <p className="text-center text-custom-black">© 2024 心理測驗系統. All rights reserved.</p>
+            </div>
+          </footer>
+        )}
       </div>
     </Router>
   );
@@ -149,10 +154,10 @@ function NavLink({ to, children }) {
   return (
     <Link 
       to={to} 
-      className={`px-4 py-2 rounded-md transition-colors ${
+      className={`px-4 py-2 rounded-full transition-all duration-200 ${
         isActive 
-          ? 'bg-blue-50 text-blue-600 font-medium' 
-          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+          ? 'bg-black text-white font-medium'
+          : 'text-gray-600 hover:text-gray-900 hover:bg-black hover:text-white'
       }`}
     >
       {children}

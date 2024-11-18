@@ -27,6 +27,9 @@ module.exports = {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
         },
+        'custom-primary': 'rgb(242, 241, 255)',
+        'custom-secondary': 'rgb(255, 229, 0)',
+        'custom-black': 'rgb(0, 0, 0)',
       },
       borderRadius: {
         lg: "var(--radius)",
