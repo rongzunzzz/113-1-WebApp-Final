@@ -8,7 +8,7 @@ export function Button({ children, className = '', ...props }) {
         transition-all duration-200
         focus:outline-none focus:ring-2 focus:ring-offset-2
         disabled:opacity-50 disabled:cursor-not-allowed
-        bg-custom-secondary text-custom-black hover:bg-black hover:text-white
+        bg-custom-primary text-custom-black
         ${className}
       `}
       {...props}

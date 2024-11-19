@@ -195,7 +195,7 @@ export default function CreateTest() {
           </div>
         )}
 
-        <div className="bg-gray-100 p-6 rounded-lg">
+        <div className="bg-custom-primary p-6 rounded-lg border border-black">
           <h3 className="text-lg font-medium mb-4 text-custom-black">新增問題</h3>
           <div className="space-y-4">
             <Input
@@ -225,7 +225,7 @@ export default function CreateTest() {
                     className="text-red-500 hover:text-red-700"
                     disabled={newQuestion.options.length <= 2}
                   >
-                    <Minus className="h-4 w-4" />
+                    <Minus className="h-6 w-7" />
                   </Button>
                 </div>
               ))}
@@ -234,7 +234,7 @@ export default function CreateTest() {
                 type="button"
                 variant="outline"
                 onClick={addOption}
-                className="w-full mt-2 bg-gray-200 hover:bg-gray-300 text-custom-black rounded-full"
+                className="w-full mt-2 bg-custom-primary text-custom-black"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 新增選項

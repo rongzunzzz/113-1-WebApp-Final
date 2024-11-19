@@ -73,11 +73,11 @@ const PsychologyTestApp = () => {
     <Router>
       <div className="min-h-screen bg-custom-primary">
         {/* 導航欄 */}
-        <nav className="bg-custom-secondary shadow-sm sticky top-0 z-50">
+        <nav className="bg-custom-primary shadow-sm sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
+            <div className="flex justify-between h-20">
               <div className="flex items-center">
-                <span className="text-xl font-bold text-gray-900">心理測驗系統</span>
+                <span className="text-2xl font-bold text-gray-900">心理測驗系統</span>
               </div>
               <div className="flex items-center space-x-2">
                 <NavLink to="/">製作測驗</NavLink>
@@ -135,7 +135,7 @@ const PsychologyTestApp = () => {
 
         {/* 頁腳 */}
         {showHeaderFooter && (
-          <footer className="bg-custom-secondary border-t border-gray-100 mt-8">
+          <footer className="bg-custom-primary border-t border-gray-100 mt-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
               <p className="text-center text-custom-black">© 2024 心理測驗系統. All rights reserved.</p>
             </div>
