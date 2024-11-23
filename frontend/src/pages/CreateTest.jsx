@@ -2,18 +2,24 @@ import { useState } from 'react';
 import { useTest } from '../context/TestContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Plus, Minus, Save, Image as ImageIcon } from 'lucide-react';
+import { Plus, Minus, Save, Image as ImageIcon, ChevronDown } from 'lucide-react';
 
 export default function CreateTest() {
   const { addTest } = useTest();
   const [currentTest, setCurrentTest] = useState({ 
     title: '', 
     questions: [],
-    backgroundImage: ''
+    backgroundImage: '',
+    results: []
   });
   const [newQuestion, setNewQuestion] = useState({ 
     question: '', 
-    options: ['', '']
+    options: ['', ''],
+    optionResults: [0, 0]
+  });
+  const [newResult, setNewResult] = useState({
+    title: '',
+    description: ''
   });
 
   const handleImageUpload = (e) => {
@@ -57,17 +63,31 @@ export default function CreateTest() {
 
   const addQuestion = () => {
     if (newQuestion.question && newQuestion.options.every(opt => opt !== '')) {
+      if (currentTest.results.length === 0) {
+        alert('請先新增至少兩個可能的測驗結果！');
+        return;
+      }
       setCurrentTest({
         ...currentTest,
         questions: [...currentTest.questions, { ...newQuestion }]
       });
       setNewQuestion({
         question: '',
-        options: ['', '']
+        options: ['', ''],
+        optionResults: [0, 0]
       });
     } else {
       alert('請填寫問題和所有選項！');
     }
+  };
+
+  const updateOptionResult = (optionIndex, resultIndex) => {
+    const newOptionResults = [...newQuestion.optionResults];
+    newOptionResults[optionIndex] = resultIndex;
+    setNewQuestion({
+      ...newQuestion,
+      optionResults: newOptionResults
+    });
   };
 
   const saveTest = () => {
@@ -83,7 +103,7 @@ export default function CreateTest() {
       }));
     }
 
-    // 檢查測驗是否有標題和問題
+    // 檢查測驗是標題和問題
     if (!currentTest.title) {
       alert('請填寫測驗標題！');
       return;
@@ -99,12 +119,19 @@ export default function CreateTest() {
       return;
     }
 
+    // 檢查是否有設定結果
+    if (currentTest.results.length < 2) {
+      alert('請至少設定兩個可能的測驗結果！');
+      return;
+    }
+
     // 儲存測驗
     const newTest = {
       id: Date.now(),
       title: currentTest.title,
       questions: finalQuestions,
-      backgroundImage: currentTest.backgroundImage
+      backgroundImage: currentTest.backgroundImage,
+      results: currentTest.results
     };
 
     addTest(newTest);
@@ -113,14 +140,32 @@ export default function CreateTest() {
     setCurrentTest({ 
       title: '', 
       questions: [],
-      backgroundImage: ''
+      backgroundImage: '',
+      results: []
     });
     setNewQuestion({ 
       question: '', 
-      options: ['', '']
+      options: ['', ''],
+      optionResults: [0, 0]
+    });
+    setNewResult({
+      title: '',
+      description: ''
     });
     
     alert('測驗已儲存！');
+  };
+
+  const addResult = () => {
+    if (newResult.title && newResult.description) {
+      setCurrentTest({
+        ...currentTest,
+        results: [...currentTest.results, { ...newResult }]
+      });
+      setNewResult({ title: '', description: '' });
+    } else {
+      alert('請填寫結果標題和描述！');
+    }
   };
 
   return (
@@ -147,7 +192,7 @@ export default function CreateTest() {
                     className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white"
                     size="sm"
                   >
-                    移除圖片
+                    除圖片
                   </Button>
                 </div>
               ) : (
@@ -196,6 +241,42 @@ export default function CreateTest() {
         )}
 
         <div className="bg-custom-primary p-6 rounded-lg border border-black">
+          <h3 className="text-lg font-medium mb-4 text-custom-black">測驗結果設定</h3>
+          <div className="space-y-4">
+            {currentTest.results.length > 0 && (
+              <div className="mb-4">
+                <h4 className="font-medium mb-2">已設定的結果：</h4>
+                <div className="space-y-2">
+                  {currentTest.results.map((result, idx) => (
+                    <div key={idx} className="bg-white p-3 rounded-lg border">
+                      <p className="font-medium">{result.title}</p>
+                      <p className="text-gray-600">{result.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <Input
+              placeholder="結果標題"
+              value={newResult.title}
+              onChange={(e) => setNewResult({...newResult, title: e.target.value})}
+            />
+            <Input
+              placeholder="結果描述"
+              value={newResult.description}
+              onChange={(e) => setNewResult({...newResult, description: e.target.value})}
+            />
+            <Button 
+              onClick={addResult}
+              className="w-full bg-gray-200 hover:bg-gray-300 text-custom-black rounded-lg transition-colors"
+            >
+              新增結果
+            </Button>
+          </div>
+        </div>
+
+        <div className="bg-custom-primary p-6 rounded-lg border border-black">
           <h3 className="text-lg font-medium mb-4 text-custom-black">新增問題</h3>
           <div className="space-y-4">
             <Input
@@ -217,12 +298,31 @@ export default function CreateTest() {
                     }}
                     className="flex-1"
                   />
+                  
+                  <div className="relative min-w-[200px]">
+                    <select
+                      value={newQuestion.optionResults[index]}
+                      onChange={(e) => updateOptionResult(index, parseInt(e.target.value))}
+                      className="w-full appearance-none bg-white border border-gray-300 rounded-md px-4 py-2 pr-10 
+                               focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent
+                               cursor-pointer hover:border-gray-400 transition-colors text-sm"
+                    >
+                      <option value="" disabled>選擇結果</option>
+                      {currentTest.results.map((result, idx) => (
+                        <option key={idx} value={idx}>
+                          導向結果：{result.title}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 pointer-events-none" />
+                  </div>
+
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
                     onClick={() => removeOption(index)}
-                    className="text-red-500 hover:text-red-700"
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors"
                     disabled={newQuestion.options.length <= 2}
                   >
                     <Minus className="h-6 w-7" />

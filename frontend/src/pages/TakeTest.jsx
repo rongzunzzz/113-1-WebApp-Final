@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTest } from '../context/TestContext';
 import { Button } from '../components/ui/button';
 import { ChevronLeft, ChevronRight, Check, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function TakeTest() {
   const { savedTests, addResult, deleteTest } = useTest();
@@ -9,6 +10,7 @@ export default function TakeTest() {
   const [answers, setAnswers] = useState({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showHeaderFooter, setShowHeaderFooter] = useState(true);
+  const navigate = useNavigate();
 
   const startTest = (test) => {
     setCurrentTakingTest(test);
@@ -37,10 +39,29 @@ export default function TakeTest() {
       return;
     }
 
+    // 計算結果
+    const resultCounts = {};
+    Object.entries(answers).forEach(([questionIndex, optionIndex]) => {
+      const resultIndex = currentTakingTest.questions[questionIndex].optionResults[optionIndex];
+      resultCounts[resultIndex] = (resultCounts[resultIndex] || 0) + 1;
+    });
+
+    // 找出最常出現的結果
+    let maxCount = 0;
+    let finalResultIndex = 0;
+    Object.entries(resultCounts).forEach(([index, count]) => {
+      if (count > maxCount) {
+        maxCount = count;
+        finalResultIndex = parseInt(index);
+      }
+    });
+
+    // 儲存結果
     const result = {
       testId: currentTakingTest.id,
       testTitle: currentTakingTest.title,
       answers: answers,
+      resultIndex: finalResultIndex,
       date: new Date().toLocaleString()
     };
     
@@ -49,7 +70,15 @@ export default function TakeTest() {
     setAnswers({});
     setCurrentQuestionIndex(0);
     setShowHeaderFooter(true);
-    alert('測驗已完成！');
+    
+    // 導航到結果頁面
+    navigate(`/test-result/${currentTakingTest.id}`, { 
+      state: { 
+        testId: currentTakingTest.id,
+        resultIndex: finalResultIndex,
+        answers: answers
+      } 
+    });
   };
 
   if (!currentTakingTest) {

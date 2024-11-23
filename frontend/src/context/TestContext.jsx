@@ -45,14 +45,49 @@ export function TestProvider({ children }) {
     setTestResults(prev => [...prev, newResult]);
   };
 
+  // 新增取得特定測驗的函數
+  const getTest = (testId) => {
+    return savedTests.find(test => test.id === testId);
+  };
+
+  // 新增計算測驗結果的函數
+  const calculateTestResult = (testId, answers) => {
+    const test = getTest(testId);
+    if (!test) return null;
+
+    // 計算每個結果出現的次數
+    const resultCounts = {};
+    Object.entries(answers).forEach(([questionIndex, optionIndex]) => {
+      const resultIndex = test.questions[questionIndex].optionResults[optionIndex];
+      resultCounts[resultIndex] = (resultCounts[resultIndex] || 0) + 1;
+    });
+
+    // 找出最常出現的結果
+    let maxCount = 0;
+    let finalResultIndex = 0;
+    Object.entries(resultCounts).forEach(([index, count]) => {
+      if (count > maxCount) {
+        maxCount = count;
+        finalResultIndex = parseInt(index);
+      }
+    });
+
+    return {
+      resultIndex: finalResultIndex,
+      result: test.results[finalResultIndex]
+    };
+  };
+
   return (
     <TestContext.Provider value={{
       savedTests,
       testResults,
       addTest,
       addResult,
-      deleteTest,    // 導出刪除測驗函數
-      deleteResult   // 導出刪除結果函數
+      deleteTest,
+      deleteResult,
+      getTest,
+      calculateTestResult
     }}>
       {children}
     </TestContext.Provider>

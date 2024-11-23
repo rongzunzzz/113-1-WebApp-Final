@@ -3,6 +3,12 @@ import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react
 import CreateTest from './pages/CreateTest';
 import TakeTest from './pages/TakeTest';
 import TestResults from './pages/TestResults';
+import TestResult from './pages/TestResult';
+import { AuthProvider } from './context/AuthContext';
+import Login from './pages/Login';
+import ProtectedRoute from './components/ProtectedRoute';
+import { Navbar } from './components/Navbar';
+import Home from './pages/Home';
 
 const PsychologyTestApp = () => {
   const [activeTab, setActiveTab] = useState('create');
@@ -40,7 +46,7 @@ const PsychologyTestApp = () => {
       setCurrentTest({ title: '', questions: [] });
       alert('測驗已儲存！');
     } else {
-      alert('請填寫測驗標題和至少一個問題！');
+      alert('請填寫測驗標題和至少個問題！');
     }
   };
 
@@ -70,79 +76,60 @@ const PsychologyTestApp = () => {
   };
 
   return (
-    <Router>
-      <div className="min-h-screen bg-custom-primary">
-        {/* 導航欄 */}
-        <nav className="bg-custom-primary shadow-sm sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-20">
-              <div className="flex items-center">
-                <span className="text-2xl font-bold text-gray-900">心理測驗系統</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <NavLink to="/">製作測驗</NavLink>
-                <NavLink to="/take">執行測驗</NavLink>
-                <NavLink to="/results">測驗結果</NavLink>
-              </div>
-            </div>
-          </div>
-        </nav>
+    <AuthProvider>
+      <Router>
+        <div className="min-h-screen bg-custom-primary">
+          <Navbar />
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route
+                path="/create"
+                element={
+                  <ProtectedRoute>
+                    <CreateTest />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/take"
+                element={
+                  <ProtectedRoute>
+                    <TakeTest />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/results"
+                element={
+                  <ProtectedRoute>
+                    <TestResults />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/test-result/:id"
+                element={
+                  <ProtectedRoute>
+                    <TestResult />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </main>
 
-        {/* 主要內容區 */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-custom-primary rounded-2xl shadow-lg border border-black">
-            <div className="p-6">
-              <Routes>
-                <Route 
-                  path="/" 
-                  element={
-                    <CreateTest 
-                      currentTest={currentTest}
-                      setCurrentTest={setCurrentTest}
-                      newQuestion={newQuestion}
-                      setNewQuestion={setNewQuestion}
-                      addQuestion={addQuestion}
-                      saveTest={saveTest}
-                    />
-                  } 
-                />
-                <Route 
-                  path="/take" 
-                  element={
-                    <TakeTest 
-                      savedTests={savedTests}
-                      currentTakingTest={currentTakingTest}
-                      answers={answers}
-                      setAnswers={setAnswers}
-                      startTest={startTest}
-                      submitTest={submitTest}
-                    />
-                  } 
-                />
-                <Route 
-                  path="/results" 
-                  element={
-                    <TestResults 
-                      testResults={testResults}
-                      savedTests={savedTests}
-                    />
-                  } 
-                />
-              </Routes>
-            </div>
-          </div>
-        </main>
-
-        {/* 頁腳 */}
-        {showHeaderFooter && (
-          <footer className="bg-custom-primary border-t border-gray-100 mt-8">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-              <p className="text-center text-custom-black">© 2024 心理測驗系統. All rights reserved.</p>
-            </div>
-          </footer>
-        )}
-      </div>
-    </Router>
+          {/* 頁腳 */}
+          {showHeaderFooter && (
+            <footer className="bg-custom-primary border-t border-gray-100 mt-8">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <p className="text-center text-custom-black">© 2024 心理測驗系統. All rights reserved.</p>
+              </div>
+            </footer>
+          )}
+        </div>
+      </Router>
+    </AuthProvider>
   );
 };
 

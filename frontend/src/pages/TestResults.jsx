@@ -12,6 +12,7 @@ export default function TestResults() {
         <div className="space-y-4">
           {testResults.map((result, index) => {
             const test = savedTests.find(t => t.id === result.testId);
+            const testResult = test?.results[result.resultIndex];
             return (
               <div key={index} className="bg-white p-6 rounded-lg border border-black relative group">
                 <Button
@@ -23,7 +24,12 @@ export default function TestResults() {
                 </Button>
 
                 <h3 className="font-medium text-lg text-custom-black">{result.testTitle}</h3>
-                <p className="text-custom-black text-sm mb-4">{result.date}</p>
+                <p className="text-custom-black text-sm mb-2">{result.date}</p>
+                <p className="text-custom-black font-medium mb-4">
+                  結果：{testResult?.title}
+                </p>
+                <p className="text-gray-600 mb-4">{testResult?.description}</p>
+                
                 <div className="space-y-3">
                   {Object.entries(result.answers).map(([qIndex, answer]) => {
                     const question = test?.questions[parseInt(qIndex)];
