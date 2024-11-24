@@ -1,12 +1,33 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+import axios  from '../api/axios';
+
 export default function Home() {
   const { user } = useAuth();
+
+  const onTestApiClick = async () => {
+    const {
+        data: {
+            message,
+        }
+    } = await axios.get('/api/test', {
+        params: {
+            param1: 'param1',
+            paramList: ['param_l1', 'param_l2'],
+        },
+        paramsSerializer: {
+            indexes: null // 陣列格式化為 paramList=param_l1&paramList=param_l2
+        }
+    });
+    console.log(message);
+    
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
       <h1 className="text-4xl font-bold text-center mb-8">歡迎使用心理測驗系統</h1>
+      <button onClick={onTestApiClick}>測試API的按鈕，打開console</button>      
       
       <div className="grid md:grid-cols-2 gap-6 mt-12">
         <Link 
