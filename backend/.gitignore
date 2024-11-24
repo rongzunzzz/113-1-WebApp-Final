@@ -137,3 +137,6 @@ staticfiles/
 # Secret Key
 *.pem
 *.key
+
+# frontend modification will NOT be pushed
+../frontend/
