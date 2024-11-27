@@ -3,6 +3,7 @@ import { useTest } from '../context/TestContext';
 import { Button } from '../components/ui/button';
 import { ChevronLeft, ChevronRight, Check, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import ImageGenerator from '../components/Image_api_call/image_api_call';
 
 export default function TakeTest() {
   const { savedTests, addResult, deleteTest } = useTest();
@@ -111,7 +112,10 @@ export default function TakeTest() {
             ))}
           </div>
         ) : (
+          <div>
           <p className="text-custom-black">目前沒有可用的測驗</p>
+            <ImageGenerator />
+          </div>
         )}
       </div>
     );
