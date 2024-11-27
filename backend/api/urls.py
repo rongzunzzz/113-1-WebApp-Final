@@ -9,4 +9,6 @@ urlpatterns = [
     path('', include(router.urls)),
     path('test/', views.test_api, name='test-api'),
     path('generate_image/', views.generate_image, name='generate_image'),
+    path('login', views.login, name='login'),
+    path('signup', views.signup, name='signup'),
 ]
