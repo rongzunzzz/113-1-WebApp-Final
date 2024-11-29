@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTest } from '../context/TestContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Plus, Minus, Save, Image as ImageIcon, ChevronDown } from 'lucide-react';
 
 export default function CreateTest() {
+  const navigate = useNavigate();
   const { addTest } = useTest();
   const [currentTest, setCurrentTest] = useState({ 
     title: '', 
@@ -62,23 +64,32 @@ export default function CreateTest() {
   };
 
   const addQuestion = () => {
-    if (newQuestion.question && newQuestion.options.every(opt => opt !== '')) {
-      if (currentTest.results.length === 0) {
-        alert('請先新增至少兩個可能的測驗結果！');
-        return;
-      }
-      setCurrentTest({
-        ...currentTest,
-        questions: [...currentTest.questions, { ...newQuestion }]
-      });
-      setNewQuestion({
-        question: '',
-        options: ['', ''],
-        optionResults: [0, 0]
-      });
-    } else {
-      alert('請填寫問題和所有選項！');
+    if (!newQuestion.question.trim()) {
+      alert('請填寫問題內容！');
+      return;
     }
+
+    if (newQuestion.options.some(opt => !opt.trim())) {
+      alert('請填寫所有選項！');
+      return;
+    }
+
+    if (currentTest.results.length === 0) {
+      alert('請先新增至少兩個可能的測驗結果！');
+      return;
+    }
+
+    setCurrentTest(prev => ({
+      ...prev,
+      questions: [...prev.questions, { ...newQuestion }]
+    }));
+
+    // 重置新問題表單
+    setNewQuestion({
+      question: '',
+      options: ['', ''],
+      optionResults: [0, 0]
+    });
   };
 
   const updateOptionResult = (optionIndex, resultIndex) => {
@@ -90,275 +101,301 @@ export default function CreateTest() {
     });
   };
 
-  const saveTest = () => {
-    // 檢查當前是否有未保存的問題
-    const hasUnfinishedQuestion = newQuestion.question && 
-      newQuestion.options.every(opt => opt !== '');
-
-    // 如果有未保存的問題，先添加到 currentTest
-    if (hasUnfinishedQuestion) {
-      setCurrentTest(prev => ({
-        ...prev,
-        questions: [...prev.questions, { ...newQuestion }]
-      }));
-    }
-
-    // 檢查測驗是標題和問題
-    if (!currentTest.title) {
+  const saveTest = async () => {
+    // 基本驗證
+    if (!currentTest.title.trim()) {
       alert('請填寫測驗標題！');
       return;
     }
 
-    // 檢查是否有問題（包括剛剛添加的未保存問題）
-    const finalQuestions = hasUnfinishedQuestion 
-      ? [...currentTest.questions, { ...newQuestion }]
-      : currentTest.questions;
+    if (currentTest.results.length < 2) {
+      alert('請至少添加兩個可能的測驗結果！');
+      return;
+    }
 
-    if (finalQuestions.length === 0) {
+    if (currentTest.questions.length === 0) {
       alert('請至少添加一個問題！');
       return;
     }
 
-    // 檢查是否有設定結果
-    if (currentTest.results.length < 2) {
-      alert('請至少設定兩個可能的測驗結果！');
+    try {
+      // 創建新的測驗物件
+      const newTest = {
+        id: `test_${Date.now()}`,
+        title: currentTest.title,
+        questions: currentTest.questions.map(q => ({
+          question: q.question,
+          options: q.options,
+          optionResults: q.optionResults
+        })),
+        results: currentTest.results,
+        backgroundImage: currentTest.backgroundImage,
+        createdAt: new Date().toISOString()
+      };
+
+      console.log('Saving test:', newTest); // 調試日誌
+
+      // 添加測驗
+      await addTest(newTest);
+      
+      // 顯示成功消息
+      alert('測驗已成功保存！');
+      
+      // 先重置表單
+      setCurrentTest({ 
+        title: '', 
+        questions: [],
+        backgroundImage: '',
+        results: []
+      });
+      
+      // 最後才導航
+      setTimeout(() => {
+        navigate('/tests');
+      }, 0);
+      
+    } catch (error) {
+      console.error('Error saving test:', error);
+      alert('保存測驗時發生錯誤！');
+    }
+  };
+
+  const addResult = () => {
+    if (!newResult.title.trim() || !newResult.description.trim()) {
+      alert('請填寫結果標題和描述！');
       return;
     }
 
-    // 儲存測驗
-    const newTest = {
-      id: Date.now(),
-      title: currentTest.title,
-      questions: finalQuestions,
-      backgroundImage: currentTest.backgroundImage,
-      results: currentTest.results
-    };
+    setCurrentTest(prev => ({
+      ...prev,
+      results: [...prev.results, { ...newResult }]
+    }));
 
-    addTest(newTest);
-    
-    // 重置表單
-    setCurrentTest({ 
-      title: '', 
-      questions: [],
-      backgroundImage: '',
-      results: []
-    });
-    setNewQuestion({ 
-      question: '', 
-      options: ['', ''],
-      optionResults: [0, 0]
-    });
+    // 重置新結果表單
     setNewResult({
       title: '',
       description: ''
     });
-    
-    alert('測驗已儲存！');
   };
 
-  const addResult = () => {
-    if (newResult.title && newResult.description) {
-      setCurrentTest({
-        ...currentTest,
-        results: [...currentTest.results, { ...newResult }]
-      });
-      setNewResult({ title: '', description: '' });
-    } else {
-      alert('請填寫結果標題和描述！');
-    }
+  const handleOptionChange = (index, value) => {
+    console.log('Changing option:', index, value); // 添加調試日誌
+    setNewQuestion(prev => {
+      const newOptions = [...prev.options];
+      newOptions[index] = value;
+      return {
+        ...prev,
+        options: newOptions
+      };
+    });
+  };
+
+  const handleOptionResultChange = (index, value) => {
+    setNewQuestion(prev => {
+      const newOptionResults = [...prev.optionResults];
+      newOptionResults[index] = value;
+      return {
+        ...prev,
+        optionResults: newOptionResults
+      };
+    });
   };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-custom-primary p-6 rounded-lg">
-        <h2 className="text-xl font-semibold text-custom-black mb-4">新增測驗</h2>
-        <div className="mb-6 space-y-4">
-          <Input
-            placeholder="測驗標題"
-            value={currentTest.title}
-            onChange={(e) => setCurrentTest({...currentTest, title: e.target.value})}
-          />
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-            <div className="flex items-center justify-center">
-              {currentTest.backgroundImage ? (
-                <div className="relative w-full">
-                  <img 
-                    src={currentTest.backgroundImage} 
-                    alt="背景預覽" 
-                    className="w-full h-48 object-cover rounded-lg"
-                  />
-                  <Button
-                    onClick={removeBackgroundImage}
-                    className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white"
-                    size="sm"
-                  >
-                    除圖片
-                  </Button>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
-                  <div className="mt-2">
-                    <label className="cursor-pointer">
-                      <span className="text-blue-600 hover:text-blue-700">上傳背景圖片</span>
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                      />
-                    </label>
-                    <p className="text-sm text-gray-500 mt-1">
-                      支援 PNG, JPG, GIF 格式
-                    </p>
-                  </div>
-                </div>
-              )}
+    <div className="max-w-3xl mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-6">建立新測驗</h1>
+      
+      {/* 測驗標題輸入 */}
+      <div className="mb-6">
+        <Input
+          type="text"
+          placeholder="測驗標題"
+          value={currentTest.title}
+          onChange={(e) => setCurrentTest({...currentTest, title: e.target.value})}
+          className="text-xl font-bold"
+        />
+      </div>
+
+      {/* 背景圖片上傳 */}
+      <div className="mb-6 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+        <h2 className="text-lg font-semibold mb-4">背景圖片</h2>
+        <div className="space-y-4">
+          {/* 圖片預覽區域 */}
+          {currentTest.backgroundImage && (
+            <div className="relative w-full h-40 bg-gray-100 rounded-lg overflow-hidden">
+              <img
+                src={currentTest.backgroundImage}
+                alt="背景預覽"
+                className="w-full h-full object-cover"
+              />
+              <Button
+                onClick={removeBackgroundImage}
+                className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full"
+              >
+                <Minus className="w-4 h-4" />
+              </Button>
             </div>
+          )}
+          
+          {/* 上傳按鈕 */}
+          <div className="flex items-center space-x-4">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+              id="image-upload"
+            />
+            <label
+              htmlFor="image-upload"
+              className="cursor-pointer flex items-center px-4 py-2 bg-custom-secondary hover:bg-black hover:text-white rounded-md transition-colors duration-200"
+            >
+              <ImageIcon className="w-4 h-4 mr-2" />
+              {currentTest.backgroundImage ? '更換圖片' : '選擇圖片'}
+            </label>
+            {currentTest.backgroundImage && (
+              <span className="text-sm text-gray-600">
+                已選擇圖片
+              </span>
+            )}
           </div>
         </div>
-        
-        {currentTest.questions.length > 0 && (
-          <div className="mb-8">
-            <h3 className="text-lg font-medium mb-4">已新增的問題：</h3>
-            <div className="space-y-4">
-              {currentTest.questions.map((q, idx) => (
-                <div key={idx} className="bg-white p-4 rounded-lg border border-black">
-                  <div className="flex justify-between items-start">
-                    <p className="font-medium">{`${idx + 1}. ${q.question}`}</p>
-                  </div>
-                  <ul className="mt-2 space-y-1">
-                    {q.options.map((opt, optIdx) => (
-                      <li key={optIdx} className="text-gray-600">
-                        {`${String.fromCharCode(65 + optIdx)}. ${opt}`}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+      </div>
+
+      {/* 測驗結果設定 */}
+      <div className="mb-6 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+        <h2 className="text-lg font-semibold mb-4">可能的測驗結果</h2>
+        <div className="space-y-4">
+          {currentTest.results.map((result, index) => (
+            <div key={index} className="p-3 bg-gray-50 rounded-md">
+              <p className="font-medium">{result.title}</p>
+              <p className="text-sm text-gray-600">{result.description}</p>
             </div>
-          </div>
-        )}
-
-        <div className="bg-custom-primary p-6 rounded-lg border border-black">
-          <h3 className="text-lg font-medium mb-4 text-custom-black">測驗結果設定</h3>
-          <div className="space-y-4">
-            {currentTest.results.length > 0 && (
-              <div className="mb-4">
-                <h4 className="font-medium mb-2">已設定的結果：</h4>
-                <div className="space-y-2">
-                  {currentTest.results.map((result, idx) => (
-                    <div key={idx} className="bg-white p-3 rounded-lg border">
-                      <p className="font-medium">{result.title}</p>
-                      <p className="text-gray-600">{result.description}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
+          ))}
+          
+          <div className="space-y-2">
             <Input
               placeholder="結果標題"
               value={newResult.title}
               onChange={(e) => setNewResult({...newResult, title: e.target.value})}
+              className="mb-2"
             />
             <Input
               placeholder="結果描述"
               value={newResult.description}
               onChange={(e) => setNewResult({...newResult, description: e.target.value})}
+              className="mb-2"
             />
-            <Button 
+            <Button
               onClick={addResult}
-              className="w-full bg-gray-200 hover:bg-gray-300 text-custom-black rounded-lg transition-colors"
+              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800"
             >
+              <Plus className="w-4 h-4 mr-2" />
               新增結果
             </Button>
           </div>
         </div>
+      </div>
 
-        <div className="bg-custom-primary p-6 rounded-lg border border-black">
-          <h3 className="text-lg font-medium mb-4 text-custom-black">新增問題</h3>
-          <div className="space-y-4">
-            <Input
-              placeholder="問題"
-              value={newQuestion.question}
-              onChange={(e) => setNewQuestion({...newQuestion, question: e.target.value})}
-            />
-            
-            <div className="space-y-2">
-              {newQuestion.options.map((option, index) => (
-                <div key={index} className="flex items-center space-x-2">
-                  <Input
-                    placeholder={`選項 ${index + 1}`}
-                    value={option}
-                    onChange={(e) => {
-                      const newOptions = [...newQuestion.options];
-                      newOptions[index] = e.target.value;
-                      setNewQuestion({...newQuestion, options: newOptions});
+      {/* 問題列表 */}
+      <div className="mb-6 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+        <h2 className="text-lg font-semibold mb-4">已新增的問題</h2>
+        <div className="space-y-4">
+          {currentTest.questions.map((question, index) => (
+            <div key={index} className="p-3 bg-gray-50 rounded-md">
+              <p className="font-medium">問題 {index + 1}: {question.question}</p>
+              <div className="mt-2 space-y-1">
+                {question.options.map((option, optIndex) => (
+                  <p key={optIndex} className="text-sm text-gray-600">
+                    • {option}
+                  </p>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 增問題表單 */}
+      <div className="mb-6 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+        <h2 className="text-lg font-semibold mb-4">新增問題</h2>
+        <div className="space-y-4">
+          <Input
+            placeholder="問題內容"
+            value={newQuestion.question}
+            onChange={(e) => setNewQuestion(prev => ({
+              ...prev,
+              question: e.target.value
+            }))}
+            className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-secondary"
+          />
+
+          {/* 選項輸入區域 */}
+          <div className="space-y-2">
+            {newQuestion.options.map((option, index) => (
+              <div key={index} className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  placeholder={`選項 ${index + 1}`}
+                  value={option}
+                  onChange={(e) => handleOptionChange(index, e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-secondary"
+                />
+                <div className="relative">
+                  <select
+                    value={newQuestion.optionResults[index]}
+                    onChange={(e) => handleOptionResultChange(index, parseInt(e.target.value))}
+                    className="px-3 py-2 pr-8 bg-custom-secondary text-black rounded-md
+                      text-sm font-medium hover:bg-black hover:text-white
+                      transition-colors duration-200 cursor-pointer
+                      border-none outline-none appearance-none min-w-[120px]"
+                    style={{
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'none'
                     }}
-                    className="flex-1"
-                  />
-                  
-                  <div className="relative min-w-[200px]">
-                    <select
-                      value={newQuestion.optionResults[index]}
-                      onChange={(e) => updateOptionResult(index, parseInt(e.target.value))}
-                      className="w-full appearance-none bg-white border border-gray-300 rounded-md px-4 py-2 pr-10 
-                               focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent
-                               cursor-pointer hover:border-gray-400 transition-colors text-sm"
-                    >
-                      <option value="" disabled>選擇結果</option>
-                      {currentTest.results.map((result, idx) => (
-                        <option key={idx} value={idx}>
-                          導向結果：{result.title}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 pointer-events-none" />
-                  </div>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => removeOption(index)}
-                    className="text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors"
-                    disabled={newQuestion.options.length <= 2}
                   >
-                    <Minus className="h-6 w-7" />
-                  </Button>
+                    {currentTest.results.map((result, resultIndex) => (
+                      <option 
+                        key={resultIndex} 
+                        value={resultIndex}
+                        className="bg-white text-black"
+                      >
+                        {result.title}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 pointer-events-none" />
                 </div>
-              ))}
-              
-              <Button
-                type="button"
-                variant="outline"
-                onClick={addOption}
-                className="w-full mt-2 bg-custom-primary text-custom-black"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                新增選項
-              </Button>
-            </div>
-
-            <div className="mt-4 space-x-4">
-              <Button 
-                onClick={addQuestion}
-                className="bg-gray-200 hover:bg-gray-300 text-custom-black rounded-full inline-flex items-center"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                新增問題
-              </Button>
-              <Button 
-                onClick={saveTest}
-                className="bg-custom-secondary hover:bg-black hover:text-white rounded-full inline-flex items-center"
-              >
-                <Save className="h-4 w-4 mr-2" />
-                儲存測驗
-              </Button>
-            </div>
+                {newQuestion.options.length > 2 && (
+                  <Button
+                    onClick={() => removeOption(index)}
+                    className="text-red-500 hover:text-red-700 p-2"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
           </div>
         </div>
+      </div>
+
+      {/* 新增問題 */}
+      <div className="mt-4 space-x-4">
+        <Button 
+          onClick={addQuestion}
+          className="bg-gray-200 hover:bg-gray-300 text-custom-black rounded-full inline-flex items-center"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          新增問題
+        </Button>
+        <Button 
+          onClick={saveTest}
+          className="bg-custom-secondary hover:bg-black hover:text-white rounded-full inline-flex items-center"
+        >
+          <Save className="h-4 w-4 mr-2" />
+          儲存測驗
+        </Button>
       </div>
     </div>
   );

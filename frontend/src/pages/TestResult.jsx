@@ -6,15 +6,21 @@ import { Link } from 'react-router-dom';
 export default function TestResult() {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const { savedTests } = useTest();
+  const { getTest } = useTest();
   
   if (!state) {
-    navigate('/take');
+    navigate('/tests');
     return null;
   }
 
   const { testId, resultIndex, answers } = state;
-  const test = savedTests.find(t => t.id === testId);
+  const test = getTest(testId);
+  
+  if (!test) {
+    navigate('/tests');
+    return null;
+  }
+
   const result = test.results[resultIndex];
 
   return (
@@ -42,12 +48,12 @@ export default function TestResult() {
         </div>
 
         <div className="mt-8 space-y-4">
-          <Link to="/take">
+          <Link to="/tests">
             <Button className="w-full bg-custom-secondary hover:bg-black hover:text-white">
               返回測驗列表
             </Button>
           </Link>
-          <Link to={`/take`}>
+          <Link to={`/test/${testId}`}>
             <Button className="w-full bg-gray-200 hover:bg-gray-300 text-custom-black">
               重新測驗
             </Button>

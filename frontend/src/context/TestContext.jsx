@@ -38,7 +38,20 @@ export function TestProvider({ children }) {
   }, [testResults]);
 
   const addTest = (newTest) => {
-    setSavedTests(prev => [...prev, newTest]);
+    console.log('Adding test:', newTest);
+    if (!newTest.id) {
+      newTest.id = `test_${Date.now()}`;
+    }
+    try {
+      setSavedTests(prev => {
+        const updated = [...prev, newTest];
+        console.log('Updated tests:', updated);
+        return updated;
+      });
+    } catch (error) {
+      console.error('Error in addTest:', error);
+      throw error;
+    }
   };
 
   const addResult = (newResult) => {
@@ -47,7 +60,11 @@ export function TestProvider({ children }) {
 
   // 新增取得特定測驗的函數
   const getTest = (testId) => {
-    return savedTests.find(test => test.id === testId);
+    console.log('Getting test:', testId);
+    console.log('Available tests:', savedTests);
+    const test = savedTests.find(test => test.id === testId);
+    console.log('Found test:', test);
+    return test || null;
   };
 
   // 新增計算測驗結果的函數
