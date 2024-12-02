@@ -42,9 +42,30 @@ export default function TestResult() {
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4">您的測驗結果：</h2>
           <div className="bg-gray-100 p-4 rounded-lg">
+            {result.imageUrl && (
+              <div className="mb-4">
+                <img
+                  src={result.imageUrl}
+                  alt={result.title}
+                  className="w-full h-48 object-cover rounded-lg shadow-md"
+                />
+              </div>
+            )}
             <h3 className="text-lg font-medium mb-2">{result.title}</h3>
             <p className="text-gray-700">{result.description}</p>
           </div>
+        </div>
+
+        <div className="mb-8">
+          <Button
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+              alert('測驗連結已複製到剪貼簿！');
+            }}
+            className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 mb-4"
+          >
+            分享測驗
+          </Button>
         </div>
 
         <div className="mt-8 space-y-4">

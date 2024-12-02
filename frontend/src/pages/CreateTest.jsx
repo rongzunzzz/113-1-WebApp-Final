@@ -23,6 +23,8 @@ export default function CreateTest() {
     title: '',
     description: ''
   });
+  const [loading, setLoading] = useState(false);
+  const [generatingIndex, setGeneratingIndex] = useState(null);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -128,7 +130,11 @@ export default function CreateTest() {
           options: q.options,
           optionResults: q.optionResults
         })),
-        results: currentTest.results,
+        results: currentTest.results.map(result => ({
+          title: result.title,
+          description: result.description,
+          imageUrl: result.imageUrl
+        })),
         backgroundImage: currentTest.backgroundImage,
         createdAt: new Date().toISOString()
       };
@@ -168,7 +174,7 @@ export default function CreateTest() {
 
     setCurrentTest(prev => ({
       ...prev,
-      results: [...prev.results, { ...newResult }]
+      results: [...prev.results, { ...newResult, imageUrl: '' }]
     }));
 
     // 重置新結果表單
@@ -199,6 +205,38 @@ export default function CreateTest() {
         optionResults: newOptionResults
       };
     });
+  };
+
+  const generateImage = async (description, index) => {
+    setGeneratingIndex(index);
+    setLoading(true);
+    try {
+      // 這裡替換成實際的 API 呼叫
+      const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt: description })
+      });
+      const data = await response.json();
+      
+      // 更新對應結果的圖片 URL
+      setCurrentTest(prev => ({
+        ...prev,
+        results: prev.results.map((result, i) => 
+          i === index 
+            ? { ...result, imageUrl: data.imageUrl }
+            : result
+        )
+      }));
+    } catch (error) {
+      alert('生成圖片時發生錯誤');
+      console.error('Error generating image:', error);
+    } finally {
+      setLoading(false);
+      setGeneratingIndex(null);
+    }
   };
 
   return (
@@ -270,6 +308,40 @@ export default function CreateTest() {
             <div key={index} className="p-3 bg-gray-50 rounded-md">
               <p className="font-medium">{result.title}</p>
               <p className="text-sm text-gray-600">{result.description}</p>
+              
+              {/* 圖片預覽和生成按鈕 */}
+              <div className="mt-3">
+                {result.imageUrl ? (
+                  <div className="relative">
+                    <img
+                      src={result.imageUrl}
+                      alt={result.title}
+                      className="w-full h-40 object-cover rounded-md"
+                    />
+                    <Button
+                      onClick={() => generateImage(result.description, index)}
+                      className="absolute top-2 right-2 bg-white/80 hover:bg-white text-black text-sm px-2 py-1 rounded"
+                    >
+                      重新生成
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    onClick={() => generateImage(result.description, index)}
+                    disabled={loading && generatingIndex === index}
+                    className="w-full bg-custom-secondary hover:bg-black hover:text-white text-sm py-2"
+                  >
+                    {loading && generatingIndex === index ? (
+                      '生成圖片中...'
+                    ) : (
+                      <>
+                        <ImageIcon className="w-4 h-4 mr-2" />
+                        生成結果圖片
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
           ))}
           
