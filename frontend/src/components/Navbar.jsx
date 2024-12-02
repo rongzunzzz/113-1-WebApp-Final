@@ -51,7 +51,7 @@ export function Navbar() {
 
           <div className="flex items-center space-x-4">
             {user ? (
-              <>
+              <div className="flex items-center space-x-4">
                 <span className="text-gray-700">{user.name}</span>
                 <Button
                   onClick={logout}
@@ -59,7 +59,7 @@ export function Navbar() {
                 >
                   登出
                 </Button>
-              </>
+              </div>
             ) : (
               <Link to="/login">
                 <Button className="bg-custom-secondary hover:bg-black hover:text-white">

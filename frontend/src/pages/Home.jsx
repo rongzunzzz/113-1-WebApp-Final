@@ -30,18 +30,20 @@ export default function Home() {
       <button onClick={onTestApiClick}>測試API的按鈕，打開console</button>      
       
       <div className="grid md:grid-cols-2 gap-6 mt-12">
-        <Link 
-          to="/create"
-          className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow border border-gray-200"
-        >
-          <h2 className="text-2xl font-semibold mb-4">建立測驗</h2>
-          <p className="text-gray-600">
-            創建您自己的心理測驗，設計問題和選項，分享給其他使用者。
-          </p>
-        </Link>
+        {user && (
+          <Link 
+            to="/create"
+            className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow border border-gray-200"
+          >
+            <h2 className="text-2xl font-semibold mb-4">建立測驗</h2>
+            <p className="text-gray-600">
+              創建您自己的心理測驗，設計問題和選項，分享給其他使用者。
+            </p>
+          </Link>
+        )}
 
         <Link 
-          to="/take"
+          to="/tests"
           className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow border border-gray-200"
         >
           <h2 className="text-2xl font-semibold mb-4">參與測驗</h2>
