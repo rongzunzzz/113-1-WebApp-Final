@@ -6,21 +6,30 @@ import { Input } from '../components/ui/input';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
-  const [formData, setFormData] = useState({
+  const { login, register } = useAuth();
+  const [activeTab, setActiveTab] = useState('login'); // 'login' 或 'register'
+  const [error, setError] = useState('');
+  
+  const [loginData, setLoginData] = useState({
     email: '',
     password: ''
   });
-  const [error, setError] = useState('');
 
-  const handleSubmit = async (e) => {
+  const [registerData, setRegisterData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
 
     try {
-      if (formData.email === 'test@example.com' && formData.password === 'password') {
+      if (loginData.email === 'test@example.com' && loginData.password === 'password') {
         login({
-          email: formData.email,
+          email: loginData.email,
           name: '測試用戶'
         });
         navigate('/');
@@ -32,58 +41,168 @@ export default function Login() {
     }
   };
 
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (registerData.password !== registerData.confirmPassword) {
+      setError('密碼不一致');
+      return;
+    }
+
+    try {
+      await register(registerData.name, registerData.email, registerData.password);
+      navigate('/');
+    } catch (err) {
+      setError(err.message || '註冊失敗');
+    }
+  };
+
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-start justify-center pt-20 bg-custom-primary">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md mx-4">
-        <h2 className="text-2xl font-bold text-center mb-8">登入系統</h2>
-        
+        {/* Tab 切換按鈕 */}
+        <div className="flex mb-8 border-b">
+          <button
+            className={`flex-1 py-2 text-center ${
+              activeTab === 'login'
+                ? 'border-b-2 border-custom-secondary font-semibold'
+                : 'text-gray-500'
+            }`}
+            onClick={() => setActiveTab('login')}
+          >
+            登入
+          </button>
+          <button
+            className={`flex-1 py-2 text-center ${
+              activeTab === 'register'
+                ? 'border-b-2 border-custom-secondary font-semibold'
+                : 'text-gray-500'
+            }`}
+            onClick={() => setActiveTab('register')}
+          >
+            註冊
+          </button>
+        </div>
+
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              電子郵件
-            </label>
-            <Input
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              required
-              className="w-full"
-              placeholder="請輸入電子郵件"
-            />
-          </div>
+        {/* 登入表單 */}
+        {activeTab === 'login' && (
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                電子郵件
+              </label>
+              <Input
+                type="email"
+                value={loginData.email}
+                onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                required
+                className="w-full"
+                placeholder="請輸入電子郵件"
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              密碼
-            </label>
-            <Input
-              type="password"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              required
-              className="w-full"
-              placeholder="請輸入密碼"
-            />
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                密碼
+              </label>
+              <Input
+                type="password"
+                value={loginData.password}
+                onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                required
+                className="w-full"
+                placeholder="請輸入密碼"
+              />
+            </div>
 
-          <Button
-            type="submit"
-            className="w-full bg-custom-secondary hover:bg-black hover:text-white transition-colors py-2 mt-4"
-          >
-            登入
-          </Button>
-        </form>
+            <Button
+              type="submit"
+              className="w-full bg-custom-secondary hover:bg-black hover:text-white transition-colors py-2 mt-4"
+            >
+              登入
+            </Button>
 
-        <p className="mt-6 text-center text-sm text-gray-600">
-          測試帳號：test@example.com<br />
-          測試密碼：password
-        </p>
+            <p className="mt-6 text-center text-sm text-gray-600">
+              測試帳號：test@example.com<br />
+              測試密碼：password
+            </p>
+          </form>
+        )}
+
+        {/* 註冊表單 */}
+        {activeTab === 'register' && (
+          <form onSubmit={handleRegister} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                名稱
+              </label>
+              <Input
+                type="text"
+                value={registerData.name}
+                onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
+                required
+                className="w-full"
+                placeholder="請輸入名稱"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                電子郵件
+              </label>
+              <Input
+                type="email"
+                value={registerData.email}
+                onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+                required
+                className="w-full"
+                placeholder="請輸入電子郵件"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                密碼
+              </label>
+              <Input
+                type="password"
+                value={registerData.password}
+                onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                required
+                className="w-full"
+                placeholder="請輸入密碼"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                確認密碼
+              </label>
+              <Input
+                type="password"
+                value={registerData.confirmPassword}
+                onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
+                required
+                className="w-full"
+                placeholder="請再次輸入密碼"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full bg-custom-secondary hover:bg-black hover:text-white transition-colors py-2 mt-4"
+            >
+              註冊
+            </Button>
+          </form>
+        )}
       </div>
     </div>
   );

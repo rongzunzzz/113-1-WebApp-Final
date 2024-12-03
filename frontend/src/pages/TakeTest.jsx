@@ -1,26 +1,53 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useTest } from '../context/TestContext';
 import { Button } from '../components/ui/button';
-import { ChevronLeft, ChevronRight, Check, Trash2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function TakeTest() {
-  const { savedTests, addResult, deleteTest } = useTest();
-  const [currentTakingTest, setCurrentTakingTest] = useState(null);
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { getTest, addResult } = useTest();
+  const [currentTest, setCurrentTest] = useState(null);
   const [answers, setAnswers] = useState({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [showHeaderFooter, setShowHeaderFooter] = useState(true);
-  const navigate = useNavigate();
 
-  const startTest = (test) => {
-    setCurrentTakingTest(test);
-    setAnswers({});
-    setCurrentQuestionIndex(0);
-    setShowHeaderFooter(false);
+  useEffect(() => {
+    console.log('Loading test with ID:', id);
+    const test = getTest(id);
+    console.log('Loaded test:', test);
+    if (!test) {
+      navigate('/tests');
+      return;
+    }
+    setCurrentTest(test);
+  }, [id, navigate, getTest]);
+
+  if (!currentTest) {
+    return <div>載入中...</div>;
+  }
+
+  console.log('Current question index:', currentQuestionIndex);
+  console.log('Current test questions:', currentTest.questions);
+  const currentQuestion = currentTest.questions[currentQuestionIndex];
+  console.log('Current question:', currentQuestion);
+
+  if (!currentQuestion) {
+    console.error('No question found at index:', currentQuestionIndex);
+    return <div>找不到問題</div>;
+  }
+
+  const isLastQuestion = currentQuestionIndex === currentTest.questions.length - 1;
+
+  const handleAnswerSelect = (optionIndex) => {
+    setAnswers(prev => ({
+      ...prev,
+      [currentQuestionIndex]: optionIndex
+    }));
   };
 
   const goToNextQuestion = () => {
-    if (currentQuestionIndex < currentTakingTest.questions.length - 1) {
+    if (currentQuestionIndex < currentTest.questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
     }
   };
@@ -32,21 +59,37 @@ export default function TakeTest() {
   };
 
   const submitTest = () => {
-    if (!currentTakingTest) return;
-    
-    if (Object.keys(answers).length !== currentTakingTest.questions.length) {
+    if (Object.keys(answers).length !== currentTest.questions.length) {
       alert('請回答所有問題！');
       return;
     }
 
-    // 計算結果
+    const result = {
+      testId: currentTest.id,
+      testTitle: currentTest.title,
+      answers: answers,
+      resultIndex: calculateFinalResult(),
+      date: new Date().toISOString()
+    };
+    
+    addResult(result);
+    
+    navigate(`/test/${currentTest.id}/result`, { 
+      state: { 
+        testId: currentTest.id,
+        resultIndex: result.resultIndex,
+        answers: answers
+      } 
+    });
+  };
+
+  const calculateFinalResult = () => {
     const resultCounts = {};
     Object.entries(answers).forEach(([questionIndex, optionIndex]) => {
-      const resultIndex = currentTakingTest.questions[questionIndex].optionResults[optionIndex];
+      const resultIndex = currentTest.questions[questionIndex].optionResults[optionIndex];
       resultCounts[resultIndex] = (resultCounts[resultIndex] || 0) + 1;
     });
 
-    // 找出最常出現的結果
     let maxCount = 0;
     let finalResultIndex = 0;
     Object.entries(resultCounts).forEach(([index, count]) => {
@@ -56,77 +99,16 @@ export default function TakeTest() {
       }
     });
 
-    // 儲存結果
-    const result = {
-      testId: currentTakingTest.id,
-      testTitle: currentTakingTest.title,
-      answers: answers,
-      resultIndex: finalResultIndex,
-      date: new Date().toLocaleString()
-    };
-    
-    addResult(result);
-    setCurrentTakingTest(null);
-    setAnswers({});
-    setCurrentQuestionIndex(0);
-    setShowHeaderFooter(true);
-    
-    // 導航到結果頁面
-    navigate(`/test-result/${currentTakingTest.id}`, { 
-      state: { 
-        testId: currentTakingTest.id,
-        resultIndex: finalResultIndex,
-        answers: answers
-      } 
-    });
+    return finalResultIndex;
   };
 
-  if (!currentTakingTest) {
-    return (
-      <div className="bg-custom-primary p-6 rounded-lg border border-gray-200">
-        <h2 className="text-xl font-semibold text-custom-black mb-4">選擇測驗</h2>
-        {savedTests.length > 0 ? (
-          <div className="space-y-4">
-            {savedTests.map((test) => (
-              <div key={test.id} 
-                className="flex justify-between items-center p-4 bg-custom-primary rounded-lg border border-gray-200 group"
-              >
-                <span className="font-medium text-custom-black">{test.title}</span>
-                <div className="flex items-center space-x-2">
-                  <Button 
-                    onClick={() => startTest(test)}
-                    className="bg-custom-secondary hover:bg-black hover:text-white rounded-full"
-                  >
-                    開始測驗
-                  </Button>
-                  <Button
-                    onClick={() => deleteTest(test.id)}
-                    className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                    variant="ghost"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-custom-black">目前沒有可用的測驗</p>
-        )}
-      </div>
-    );
-  }
-
-  const currentQuestion = currentTakingTest.questions[currentQuestionIndex];
-  const isLastQuestion = currentQuestionIndex === currentTakingTest.questions.length - 1;
-
   return (
-    <div className="min-h-[60vh] flex flex-col">
-      {currentTakingTest?.backgroundImage && (
+    <div className="min-h-[60vh] flex flex-col max-w-4xl mx-auto">
+      {currentTest.backgroundImage && (
         <div 
           className="fixed inset-0 z-0"
           style={{
-            backgroundImage: `url(${currentTakingTest.backgroundImage})`,
+            backgroundImage: `url(${currentTest.backgroundImage})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             opacity: 0.15
@@ -134,87 +116,65 @@ export default function TakeTest() {
         />
       )}
       
-      <div className="relative z-10">
-        <div className="mb-6 flex justify-between items-center">
-          <span className="text-lg font-medium text-custom-black">
-            問題 {currentQuestionIndex + 1} / {currentTakingTest.questions.length}
-          </span>
-          <div className="flex gap-2">
-            {currentTakingTest.questions.map((_, idx) => (
-              <div 
-                key={idx}
-                className={`w-3 h-3 rounded-full transition-all ${
-                  answers[idx] !== undefined 
-                    ? 'bg-green-500' 
-                    : idx === currentQuestionIndex 
-                      ? 'bg-blue-500' 
-                      : 'bg-gray-200'
-                }`}
-              />
+      <div className="relative z-10 bg-white p-8 rounded-lg shadow-lg">
+        {/* 進度指示器 */}
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="text-xl font-bold">{currentTest.title}</h2>
+            <span className="text-sm text-gray-600">
+              問題 {currentQuestionIndex + 1} / {currentTest.questions.length}
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-custom-secondary h-2 rounded-full transition-all duration-300"
+              style={{
+                width: `${((currentQuestionIndex + 1) / currentTest.questions.length) * 100}%`
+              }}
+            />
+          </div>
+        </div>
+        
+        {/* 問題和選項 */}
+        <div className="mb-8">
+          <h3 className="text-lg font-medium mb-4">{currentQuestion.question}</h3>
+          <div className="space-y-3">
+            {currentQuestion.options.map((option, index) => (
+              <button
+                key={index}
+                onClick={() => handleAnswerSelect(index)}
+                className={`w-full text-left p-4 rounded-lg border transition-all duration-200
+                  ${answers[currentQuestionIndex] === index 
+                    ? 'border-black bg-gray-100' 
+                    : 'border-gray-200 hover:border-gray-400'
+                  }`}
+              >
+                {option}
+              </button>
             ))}
           </div>
         </div>
-
-        <div className="bg-custom-primary p-8 rounded-2xl shadow-lg border border-gray-100">
-          <h2 className="text-2xl font-semibold text-custom-black mb-8">
-            {currentQuestion.question}
-          </h2>
-          
-          <div className="space-y-4">
-            {currentQuestion.options.map((option, oIndex) => (
-              <label 
-                key={oIndex} 
-                className={`block p-4 rounded-xl border-2 transition-all cursor-pointer
-                  ${answers[currentQuestionIndex] === oIndex 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : 'border-gray-100 hover:bg-gray-50 hover:border-gray-200'}`}
-              >
-                <div className="flex items-center space-x-3">
-                  <input
-                    type="radio"
-                    name={`question-${currentQuestionIndex}`}
-                    value={oIndex}
-                    checked={answers[currentQuestionIndex] === oIndex}
-                    onChange={() => {
-                      setAnswers({
-                        ...answers,
-                        [currentQuestionIndex]: oIndex
-                      });
-                    }}
-                    className="hidden"
-                  />
-                  <span className="text-lg text-gray-700">{option}</span>
-                </div>
-              </label>
-            ))}
-          </div>
-
-          <div className="mt-6 flex justify-between">
-            <Button 
-              onClick={goToPreviousQuestion}
-              disabled={currentQuestionIndex === 0}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-800"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <Button 
-              onClick={isLastQuestion ? submitTest : goToNextQuestion}
-              style={{ backgroundColor: 'rgb(255, 229, 0)', color: 'black' }}
-              className="hover:bg-yellow-600"
-            >
-              {isLastQuestion ? '提交測驗' : '下一題'}
-            </Button>
-          </div>
+        
+        {/* 導航按鈕 */}
+        <div className="flex justify-between mt-6">
+          <Button 
+            onClick={goToPreviousQuestion}
+            disabled={currentQuestionIndex === 0}
+            className="bg-gray-200 hover:bg-gray-300 text-gray-800"
+          >
+            <ChevronLeft className="w-4 h-4 mr-2" />
+            上一題
+          </Button>
+          <Button 
+            onClick={isLastQuestion ? submitTest : goToNextQuestion}
+            disabled={answers[currentQuestionIndex] === undefined}
+            className="bg-custom-secondary hover:bg-black hover:text-white"
+          >
+            {isLastQuestion ? '提交測驗' : '下一題'}
+            {!isLastQuestion && <ChevronRight className="w-4 h-4 ml-2" />}
+          </Button>
         </div>
       </div>
-
-      {showHeaderFooter && (
-        <footer className="bg-custom-secondary border-t border-gray-100 mt-8">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <p className="text-center text-custom-black">© 2024 心理測驗系統. All rights reserved.</p>
-          </div>
-        </footer>
-      )}
     </div>
   );
 } 

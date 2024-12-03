@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import CreateTest from './pages/CreateTest';
 import TakeTest from './pages/TakeTest';
 import TestResults from './pages/TestResults';
@@ -9,147 +9,54 @@ import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import { Navbar } from './components/Navbar';
 import Home from './pages/Home';
+import Tests from './pages/Tests';
+import { TestProvider } from './context/TestContext';
 
 const PsychologyTestApp = () => {
-  const [activeTab, setActiveTab] = useState('create');
-  const [currentTest, setCurrentTest] = useState({ title: '', questions: [] });
-  const [newQuestion, setNewQuestion] = useState({ question: '', options: ['', ''] });
-  const [savedTests, setSavedTests] = useState([]);
-  const [currentTakingTest, setCurrentTakingTest] = useState(null);
-  const [answers, setAnswers] = useState({});
-  const [testResults, setTestResults] = useState([]);
-  const [showHeaderFooter, setShowHeaderFooter] = useState(true);
-
-  // 新增問題
-  const addQuestion = () => {
-    if (newQuestion.question && newQuestion.options.every(opt => opt !== '')) {
-      setCurrentTest({
-        ...currentTest,
-        questions: [...currentTest.questions, { ...newQuestion }]
-      });
-      setNewQuestion({
-        question: '',
-        options: ['', '', '', ''],
-        correctAnswer: 0
-      });
-    }
-  };
-
-  // 儲存測驗
-  const saveTest = () => {
-    if (currentTest.title && currentTest.questions.length > 0) {
-      const newTest = {
-        id: Date.now(),
-        ...currentTest
-      };
-      setSavedTests([...savedTests, newTest]);
-      setCurrentTest({ title: '', questions: [] });
-      alert('測驗已儲存！');
-    } else {
-      alert('請填寫測驗標題和至少個問題！');
-    }
-  };
-
-  // 開始執行測驗
-  const startTest = (test) => {
-    setCurrentTakingTest(test);
-    setAnswers({});
-    setShowHeaderFooter(false);
-  };
-
-  // 提交答案
-  const submitTest = () => {
-    if (!currentTakingTest) return;
-    
-    const result = {
-      testId: currentTakingTest.id,
-      testTitle: currentTakingTest.title,
-      answers: answers,
-      date: new Date().toLocaleString()
-    };
-    
-    setTestResults([...testResults, result]);
-    setCurrentTakingTest(null);
-    setAnswers({});
-    setShowHeaderFooter(true);
-    alert('測驗已完成！');
-  };
-
   return (
-    <AuthProvider>
-      <Router>
-        <div className="min-h-screen bg-custom-primary">
-          <Navbar />
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route
-                path="/create"
-                element={
-                  <ProtectedRoute>
-                    <CreateTest />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/take"
-                element={
-                  <ProtectedRoute>
-                    <TakeTest />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/results"
-                element={
-                  <ProtectedRoute>
-                    <TestResults />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/test-result/:id"
-                element={
-                  <ProtectedRoute>
-                    <TestResult />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-          </main>
+    <TestProvider>
+      <AuthProvider>
+        <Router>
+          <div className="min-h-screen flex flex-col bg-custom-primary">
+            <Navbar />
+            <main className="flex-1 container mx-auto px-4 py-8">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/tests" element={<Tests />} />
+                <Route 
+                  path="/create" 
+                  element={
+                    <ProtectedRoute>
+                      <CreateTest />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route path="/test/:id" element={<TakeTest />} />
+                <Route path="/test/:id/result" element={<TestResult />} />
+                <Route
+                  path="/results"
+                  element={
+                    <ProtectedRoute>
+                      <TestResults />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </main>
 
-          {/* 頁腳 */}
-          {showHeaderFooter && (
-            <footer className="bg-custom-primary border-t border-gray-100 mt-8">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <p className="text-center text-custom-black">© 2024 心理測驗系統. All rights reserved.</p>
+            <footer className="w-full bg-custom-primary py-8 border-t border-gray-200">
+              <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+                <p className="text-center text-gray-600">
+                  © {new Date().getFullYear()} Moniclassroom. All rights reserved.
+                </p>
               </div>
             </footer>
-          )}
-        </div>
-      </Router>
-    </AuthProvider>
+          </div>
+        </Router>
+      </AuthProvider>
+    </TestProvider>
   );
 };
-
-// 自定義導航鏈接組件
-function NavLink({ to, children }) {
-  const location = useLocation();
-  const isActive = location.pathname === to;
-  
-  return (
-    <Link 
-      to={to} 
-      className={`px-4 py-2 rounded-full transition-all duration-200 ${
-        isActive 
-          ? 'bg-black text-white font-medium'
-          : 'text-gray-600 hover:text-gray-900 hover:bg-black hover:text-white'
-      }`}
-    >
-      {children}
-    </Link>
-  );
-}
 
 export default PsychologyTestApp;

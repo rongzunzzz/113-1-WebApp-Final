@@ -3,7 +3,7 @@ import { Trash2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 
 export default function TestResults() {
-  const { testResults, savedTests, deleteResult } = useTest();
+  const { testResults, getTest, deleteResult } = useTest();
 
   return (
     <div className="bg-custom-primary p-6 rounded-lg border border-black">
@@ -11,20 +11,25 @@ export default function TestResults() {
       {testResults.length > 0 ? (
         <div className="space-y-4">
           {testResults.map((result, index) => {
-            const test = savedTests.find(t => t.id === result.testId);
-            const testResult = test?.results[result.resultIndex];
+            const test = getTest(result.testId);
+            if (!test) return null;
+            
+            const testResult = test.results[result.resultIndex];
             return (
               <div key={index} className="bg-white p-6 rounded-lg border border-black relative group">
-                <Button
-                  onClick={() => deleteResult(index)}
-                  className="absolute top-4 right-4 text-gray-400 hover:bg-black hover:text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                  variant="ghost"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-
-                <h3 className="font-medium text-lg text-custom-black">{result.testTitle}</h3>
-                <p className="text-custom-black text-sm mb-2">{result.date}</p>
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h3 className="font-medium text-lg text-custom-black">{test.title}</h3>
+                    <p className="text-custom-black text-sm">{new Date(result.date).toLocaleString()}</p>
+                  </div>
+                  <Button
+                    onClick={() => deleteResult(index)}
+                    className="text-gray-400 hover:bg-black hover:text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    variant="ghost"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
                 <p className="text-custom-black font-medium mb-4">
                   結果：{testResult?.title}
                 </p>

@@ -6,15 +6,21 @@ import { Link } from 'react-router-dom';
 export default function TestResult() {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const { savedTests } = useTest();
+  const { getTest } = useTest();
   
   if (!state) {
-    navigate('/take');
+    navigate('/tests');
     return null;
   }
 
   const { testId, resultIndex, answers } = state;
-  const test = savedTests.find(t => t.id === testId);
+  const test = getTest(testId);
+  
+  if (!test) {
+    navigate('/tests');
+    return null;
+  }
+
   const result = test.results[resultIndex];
 
   return (
@@ -36,18 +42,39 @@ export default function TestResult() {
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4">您的測驗結果：</h2>
           <div className="bg-gray-100 p-4 rounded-lg">
+            {result.imageUrl && (
+              <div className="mb-4">
+                <img
+                  src={result.imageUrl}
+                  alt={result.title}
+                  className="w-full h-48 object-cover rounded-lg shadow-md"
+                />
+              </div>
+            )}
             <h3 className="text-lg font-medium mb-2">{result.title}</h3>
             <p className="text-gray-700">{result.description}</p>
           </div>
         </div>
 
+        <div className="mb-8">
+          <Button
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+              alert('測驗連結已複製到剪貼簿！');
+            }}
+            className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 mb-4"
+          >
+            分享測驗
+          </Button>
+        </div>
+
         <div className="mt-8 space-y-4">
-          <Link to="/take">
+          <Link to="/tests">
             <Button className="w-full bg-custom-secondary hover:bg-black hover:text-white">
               返回測驗列表
             </Button>
           </Link>
-          <Link to={`/take`}>
+          <Link to={`/test/${testId}`}>
             <Button className="w-full bg-gray-200 hover:bg-gray-300 text-custom-black">
               重新測驗
             </Button>
