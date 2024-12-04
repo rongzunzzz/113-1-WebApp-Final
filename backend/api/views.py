@@ -2,8 +2,8 @@ import requests
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import viewsets
-from .models import Item, User
-from .serializers import ItemSerializer, UserSerializer
+from .models import Item, User, Test
+from .serializers import ItemSerializer, UserSerializer, TestSerializer
 from django.contrib.auth.hashers import make_password, check_password
 
 class ItemViewSet(viewsets.ModelViewSet):
@@ -72,6 +72,17 @@ def test_api(request):
 def signup(request):
     """
     Handle user signup by creating a new user in the database.
+    Input: 
+    {
+        "account": "test_user", 
+        "password": "password123", 
+        "username": "Test User"
+    }
+    Output:
+    {
+        "success":true,
+        "message":"Signup successful."
+    }
     """
     account = request.data.get('account')
     password = request.data.get('password')
@@ -92,6 +103,16 @@ def signup(request):
 def login(request):
     """
     Handle user login by validating credentials.
+    Input: 
+    {
+        "account": "test_user", 
+        "password": "password123", 
+    }
+    Output:
+    {
+        "success":true,
+        "message":"Login successful."
+    }
     """
     account = request.data.get('account')
     password = request.data.get('password')
@@ -107,3 +128,63 @@ def login(request):
             return Response({"success": False, "error": "Invalid password."}, status=401)
     except User.DoesNotExist:
         return Response({"success": False, "error": "Account does not exist."}, status=404)
+
+
+
+@api_view(['POST'])
+def saveTest(request):
+    """
+    Save a test to the database.
+    Input:
+    {
+        "test_id": "test123",
+        "test_content": "This is a test content", 
+        "user_id": "user456"
+    }
+    Output:
+    {   
+        "success":true, 
+        "message":"Test saved successfully."
+    }
+    """
+    test_id = request.data.get('test_id')
+    test_content = request.data.get('test_content')
+    user_id = request.data.get('user_id')
+
+    # Validate input
+    if not test_id or not test_content or not user_id:
+        return Response({"success": False, "error": "All fields are required."}, status=400)
+
+    # Save the test to the database
+    test = Test.objects.create(
+        test_id=test_id,
+        test_content=test_content,
+        user_id=user_id
+    )
+
+    return Response({"success": True, "message": "Test saved successfully."}, status=201)
+
+
+
+@api_view(['POST'])
+def deleteTest(request):
+    """
+    Delete a test from the database by test ID.
+    Input:
+    {
+        "test_id": "test123"
+    }
+    """
+    test_id = request.data.get('test_id')
+
+    # Validate input
+    if not test_id:
+        return Response({"success": False, "error": "Test ID is required."}, status=400)
+
+    try:
+        # Find and delete the test
+        test = Test.objects.get(test_id=test_id)
+        test.delete()
+        return Response({"success": True, "message": "Test deleted successfully."}, status=200)
+    except Test.DoesNotExist:
+        return Response({"success": False, "error": "Test not found."}, status=404)

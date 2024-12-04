@@ -101,11 +101,10 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
-        'NAME': config('DB_NAME'),
-        'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT', default=27017, cast=int),
-        'USER': config('DB_USER', default=''),
-        'PASSWORD': config('DB_PASSWORD', default=''),
+        'NAME': 'WEB_APP_113',
+        'CLIENT': {
+            'host': config('MONGO_URI'),
+        },
     }
 }
 
