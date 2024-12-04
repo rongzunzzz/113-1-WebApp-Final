@@ -84,9 +84,10 @@ def signup(request):
         "message":"Signup successful."
     }
     """
-    account = request.data.get('account')
-    password = request.data.get('password')
-    username = request.data.get('username')
+    params = request.query_params
+    account = params['account']
+    password = params['password']
+    username = params['username']
 
     if not account or not password or not username:
         return Response({"success": False, "error": "All fields are required."}, status=400)
@@ -114,8 +115,9 @@ def login(request):
         "message":"Login successful."
     }
     """
-    account = request.data.get('account')
-    password = request.data.get('password')
+    params = request.query_params
+    account = params['account']
+    password = params['password']
 
     if not account or not password:
         return Response({"success": False, "error": "All fields are required."}, status=400)
@@ -147,9 +149,10 @@ def saveTest(request):
         "message":"Test saved successfully."
     }
     """
-    test_id = request.data.get('test_id')
-    test_content = request.data.get('test_content')
-    user_id = request.data.get('user_id')
+    params = request.query_params
+    test_id = params['test_id']
+    test_content = params['test_content']
+    user_id = params['user_id']
 
     # Validate input
     if not test_id or not test_content or not user_id:
@@ -175,7 +178,8 @@ def deleteTest(request):
         "test_id": "test123"
     }
     """
-    test_id = request.data.get('test_id')
+    params = request.query_params
+    test_id = params['test_id']
 
     # Validate input
     if not test_id:
