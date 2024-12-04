@@ -72,3 +72,19 @@ yarn
 ```bash
 yarn run dev
 ```
+
+### Backend Migrations
+```bash
+python manage.py makemigrations 
+python manage.py migrate 
+python manage.py runserver
+```
+
+### Backend API testing, e.g. saveTest
+```bash
+
+curl -X POST http://127.0.0.1:8000/api/saveTest/ \
+-H "Content-Type: application/json" \
+-d '{"test_id": "test123", "test_content": "This is a test content", "user_id": "user456"}'
+
+```
