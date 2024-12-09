@@ -20,11 +20,26 @@ class User(models.Model):
     class Meta:
         db_table = 'User' 
         
-        
+
 class Test(models.Model):
-    test_id = models.CharField(max_length=100, unique=True)
-    test_content = models.TextField()
-    user_id = models.CharField(max_length=100)
+    test_id = models.CharField(max_length=100, unique=True) 
+    title = models.CharField(max_length=255) 
+    user_id = models.CharField(max_length=100) 
+    questions = models.JSONField() 
+    results = models.JSONField() 
+    backgroundImage = models.TextField(null=True, blank=True) 
 
     def __str__(self):
-        return self.test_id
+        return self.title
+
+
+
+class TestResult(models.Model):
+    user_id = models.CharField(max_length=255)
+    test_id = models.CharField(max_length=255)
+    answers = models.JSONField() 
+    result_index = models.IntegerField()
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Result for test {self.test_id} by user {self.user_id}"
