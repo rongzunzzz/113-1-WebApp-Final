@@ -52,7 +52,7 @@ export function Navbar() {
           <div className="flex items-center space-x-4">
             {user ? (
               <div className="flex items-center space-x-4">
-                <span className="text-gray-700">{user.name}</span>
+                <span className="text-gray-700">{user.username}</span>
                 <Button
                   onClick={logout}
                   className="bg-gray-200 hover:bg-gray-300 text-gray-800"
