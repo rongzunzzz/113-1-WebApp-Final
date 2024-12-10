@@ -4,11 +4,22 @@ import os
 import sys
 
 
+from django.db import connections
+
+def check_database():
+    try:
+        connections['default'].cursor()
+        print("Database connected successfully!")
+    except Exception as e:
+        print("Database connection failed:", e)
+
+
 def main():
     """Run administrative tasks."""
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
     try:
         from django.core.management import execute_from_command_line
+        check_database()
     except ImportError as exc:
         raise ImportError(
             "Couldn't import Django. Are you sure it's installed and "
