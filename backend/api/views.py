@@ -1,15 +1,16 @@
-import requests
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import viewsets
-from .models import Item, User, Test, TestResult
-from .serializers import ItemSerializer, UserSerializer, TestSerializer
-from django.contrib.auth.hashers import make_password, check_password
-from django.shortcuts import get_object_or_404
-from django.utils import timezone
-from django.http import JsonResponse
 import logging
 
+import requests
+from django.contrib.auth.hashers import check_password, make_password
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from rest_framework import viewsets
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+from .models import Item, Test, TestResult, User
+from .serializers import ItemSerializer, TestSerializer, UserSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +87,7 @@ def signup(request):
     user = User.objects.create(account=account, username=username, password=hashed_password)
     return Response({"success": True, "message": "Signup successful."}, status=201)
 
-@api_view(['POST'])
+@api_view(['GET'])
 def login(request):
     """
     Handle user login by validating credentials.
@@ -101,10 +102,9 @@ def login(request):
         "message":"Login successful."
     }
     """
-    data = request.data
-    account = data.get('account')
-    password = data.get('password')
-
+    data = request.query_params
+    account = data['account']
+    password = data['password']
 
     if not account or not password:
         return Response({"success": False, "error": "All fields are required."}, status=400)
@@ -112,7 +112,11 @@ def login(request):
     try:
         user = User.objects.get(account=account)
         if check_password(password, user.password):
-            return Response({"success": True, "message": "Login successful."}, status=200)
+            return Response({
+                "success": True,
+                "message": "Login successful.",
+                "username": user.username
+            }, status=200)
         else:
             return Response({"success": False, "error": "Invalid password."}, status=401)
     except User.DoesNotExist:
