@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTest } from '../context/TestContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Plus, Minus, Save, Image as ImageIcon, ChevronDown } from 'lucide-react';
+import { Plus, Minus, Save, Image as ImageIcon, ChevronDown, Edit2, Check } from 'lucide-react';
 
 export default function CreateTest() {
   const navigate = useNavigate();
@@ -25,6 +25,8 @@ export default function CreateTest() {
   });
   const [loading, setLoading] = useState(false);
   const [generatingIndex, setGeneratingIndex] = useState(null);
+  const [editingQuestionIndex, setEditingQuestionIndex] = useState(null);
+  const [editingResultIndex, setEditingResultIndex] = useState(null);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -87,6 +89,26 @@ export default function CreateTest() {
     }));
 
     // 重置新問題表單
+    setNewQuestion({
+      question: '',
+      options: ['', ''],
+      optionResults: [0, 0]
+    });
+  };
+
+  const editQuestion = (index) => {
+    setEditingQuestionIndex(index);
+    setNewQuestion(currentTest.questions[index]);
+  };
+
+  const saveEditedQuestion = () => {
+    setCurrentTest(prev => ({
+      ...prev,
+      questions: prev.questions.map((q, index) => 
+        index === editingQuestionIndex ? { ...newQuestion } : q
+      )
+    }));
+    setEditingQuestionIndex(null);
     setNewQuestion({
       question: '',
       options: ['', ''],
@@ -211,7 +233,6 @@ export default function CreateTest() {
     setGeneratingIndex(index);
     setLoading(true);
     try {
-      // 這裡替換成實際的 API 呼叫
       const response = await fetch('/api/generate-image', {
         method: 'POST',
         headers: {
@@ -221,22 +242,55 @@ export default function CreateTest() {
       });
       const data = await response.json();
       
-      // 更新對應結果的圖片 URL
+      // 更新結果中的圖片URL
       setCurrentTest(prev => ({
         ...prev,
         results: prev.results.map((result, i) => 
-          i === index 
-            ? { ...result, imageUrl: data.imageUrl }
-            : result
+          i === index ? { ...result, imageUrl: data.imageUrl } : result
         )
       }));
     } catch (error) {
-      alert('生成圖片時發生錯誤');
       console.error('Error generating image:', error);
+      alert('生成圖片時發生錯誤');
     } finally {
       setLoading(false);
       setGeneratingIndex(null);
     }
+  };
+
+  const editResult = (index) => {
+    setEditingResultIndex(index);
+    setNewResult(currentTest.results[index]);
+  };
+
+  const saveEditedResult = () => {
+    if (!newResult.title.trim() || !newResult.description.trim()) {
+      alert('請填寫結果標題和描述！');
+      return;
+    }
+
+    setCurrentTest(prev => ({
+      ...prev,
+      results: prev.results.map((result, index) => 
+        index === editingResultIndex 
+          ? { ...newResult, imageUrl: result.imageUrl }
+          : result
+      )
+    }));
+
+    setEditingResultIndex(null);
+    setNewResult({
+      title: '',
+      description: ''
+    });
+  };
+
+  const cancelEditResult = () => {
+    setEditingResultIndex(null);
+    setNewResult({
+      title: '',
+      description: ''
+    });
   };
 
   return (
@@ -300,72 +354,146 @@ export default function CreateTest() {
         </div>
       </div>
 
-      {/* 測驗結果設定 */}
+      {/* 測驗結果設定區塊 */}
       <div className="mb-6 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
-        <h2 className="text-lg font-semibold mb-4">可能的測驗結果</h2>
-        <div className="space-y-4">
-          {currentTest.results.map((result, index) => (
-            <div key={index} className="p-3 bg-gray-50 rounded-md">
-              <p className="font-medium">{result.title}</p>
-              <p className="text-sm text-gray-600">{result.description}</p>
-              
-              {/* 圖片預覽和生成按鈕 */}
-              <div className="mt-3">
-                {result.imageUrl ? (
-                  <div className="relative">
-                    <img
-                      src={result.imageUrl}
-                      alt={result.title}
-                      className="w-full h-40 object-cover rounded-md"
-                    />
-                    <Button
-                      onClick={() => generateImage(result.description, index)}
-                      className="absolute top-2 right-2 bg-white/80 hover:bg-white text-black text-sm px-2 py-1 rounded"
-                    >
-                      重新生成
-                    </Button>
-                  </div>
-                ) : (
-                  <Button
-                    onClick={() => generateImage(result.description, index)}
-                    disabled={loading && generatingIndex === index}
-                    className="w-full bg-custom-secondary hover:bg-black hover:text-white text-sm py-2"
-                  >
-                    {loading && generatingIndex === index ? (
-                      '生成圖片中...'
-                    ) : (
-                      <>
-                        <ImageIcon className="w-4 h-4 mr-2" />
-                        生成結果圖片
-                      </>
-                    )}
-                  </Button>
-                )}
-              </div>
-            </div>
-          ))}
-          
-          <div className="space-y-2">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold">測驗結果設定</h2>
+          <Button
+            onClick={addResult}
+            className="bg-custom-secondary hover:bg-black hover:text-white rounded-full inline-flex items-center"
+            disabled={editingResultIndex !== null}
+          >
+            <Save className="h-4 w-4 mr-1" />
+            <span>保存</span>
+          </Button>
+        </div>
+        
+        {/* 新增結果表單 */}
+        {editingResultIndex === null && (
+          <div className="space-y-3 mb-6">
             <Input
               placeholder="結果標題"
               value={newResult.title}
-              onChange={(e) => setNewResult({...newResult, title: e.target.value})}
-              className="mb-2"
+              onChange={(e) => setNewResult(prev => ({
+                ...prev,
+                title: e.target.value
+              }))}
+              className="w-full"
             />
-            <Input
+            <textarea
               placeholder="結果描述"
               value={newResult.description}
-              onChange={(e) => setNewResult({...newResult, description: e.target.value})}
-              className="mb-2"
+              onChange={(e) => setNewResult(prev => ({
+                ...prev,
+                description: e.target.value
+              }))}
+              className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-secondary"
+              rows={3}
             />
-            <Button
-              onClick={addResult}
-              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              新增結果
-            </Button>
           </div>
+        )}
+
+        {/* 已添加的結果列表 */}
+        <div className="space-y-4">
+          {currentTest.results.map((result, index) => (
+            <div 
+              key={index}
+              className="p-4 bg-gray-50 rounded-lg border border-gray-200"
+            >
+              {editingResultIndex === index ? (
+                // 編輯模式
+                <div className="space-y-3">
+                  <Input
+                    placeholder="結果標題"
+                    value={newResult.title}
+                    onChange={(e) => setNewResult(prev => ({
+                      ...prev,
+                      title: e.target.value
+                    }))}
+                    className="w-full"
+                  />
+                  <textarea
+                    placeholder="結果描述"
+                    value={newResult.description}
+                    onChange={(e) => setNewResult(prev => ({
+                      ...prev,
+                      description: e.target.value
+                    }))}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-secondary"
+                    rows={3}
+                  />
+                  <div className="flex space-x-2">
+                    <Button
+                      onClick={saveEditedResult}
+                      className="flex items-center bg-custom-secondary hover:bg-black hover:text-white"
+                    >
+                      <Check className="w-4 h-4 mr-1" />
+                      <span>保存</span>
+                    </Button>
+                    <Button
+                      onClick={cancelEditResult}
+                      className="flex items-center bg-gray-200 hover:bg-gray-300"
+                    >
+                      <Minus className="w-4 h-4 mr-1" />
+                      <span>取消</span>
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                // 顯示模式
+                <div>
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="font-medium">{result.title}</h3>
+                      <p className="text-sm text-gray-600">{result.description}</p>
+                    </div>
+                    <Button
+                      onClick={() => editResult(index)}
+                      className="flex items-center bg-blue-100 hover:bg-blue-200 text-blue-700"
+                    >
+                      <Edit2 className="w-4 h-4 mr-1" />
+                      <span>編輯</span>
+                    </Button>
+                  </div>
+                  
+                  {/* 圖片生成區域 */}
+                  <div className="mt-3">
+                    {result.imageUrl ? (
+                      <div className="relative">
+                        <img
+                          src={result.imageUrl}
+                          alt={result.title}
+                          className="w-full h-40 object-cover rounded-md"
+                        />
+                        <Button
+                          onClick={() => generateImage(result.description, index)}
+                          className="absolute top-2 right-2 bg-white/80 hover:bg-white text-black text-sm px-2 py-1 rounded flex items-center"
+                        >
+                          <ImageIcon className="w-4 h-4 mr-1" />
+                          <span>重新生成</span>
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        onClick={() => generateImage(result.description, index)}
+                        disabled={loading && generatingIndex === index}
+                        className="w-full bg-custom-secondary hover:bg-black hover:text-white text-sm py-2 flex items-center justify-center"
+                      >
+                        {loading && generatingIndex === index ? (
+                          <span>生成圖片中...</span>
+                        ) : (
+                          <>
+                            <ImageIcon className="w-4 h-4 mr-1" />
+                            <span>生成結果圖片</span>
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -375,22 +503,116 @@ export default function CreateTest() {
         <div className="space-y-4">
           {currentTest.questions.map((question, index) => (
             <div key={index} className="p-3 bg-gray-50 rounded-md">
-              <p className="font-medium">問題 {index + 1}: {question.question}</p>
-              <div className="mt-2 space-y-1">
-                {question.options.map((option, optIndex) => (
-                  <p key={optIndex} className="text-sm text-gray-600">
-                    • {option}
-                  </p>
-                ))}
-              </div>
+              {editingQuestionIndex === index ? (
+                <>
+                  <Input
+                    placeholder="問題內容"
+                    value={newQuestion.question}
+                    onChange={(e) => setNewQuestion(prev => ({
+                      ...prev,
+                      question: e.target.value
+                    }))}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-secondary"
+                  />
+                  <div className="space-y-2 mt-2">
+                    {newQuestion.options.map((option, optIndex) => (
+                      <div key={optIndex} className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          placeholder={`選項 ${optIndex + 1}`}
+                          value={option}
+                          onChange={(e) => handleOptionChange(optIndex, e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-secondary"
+                        />
+                        <div className="relative">
+                          <select
+                            value={newQuestion.optionResults[optIndex]}
+                            onChange={(e) => handleOptionResultChange(optIndex, parseInt(e.target.value))}
+                            className="px-3 py-2 pr-8 bg-custom-secondary text-black rounded-md
+                              text-sm font-medium hover:bg-black hover:text-white
+                              transition-colors duration-200 cursor-pointer
+                              border-none outline-none appearance-none min-w-[120px]"
+                            style={{
+                              WebkitAppearance: 'none',
+                              MozAppearance: 'none'
+                            }}
+                          >
+                            {currentTest.results.map((result, resultIndex) => (
+                              <option 
+                                key={resultIndex} 
+                                value={resultIndex}
+                                className="bg-white text-black"
+                              >
+                                {result.title}
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 pointer-events-none" />
+                        </div>
+                        {newQuestion.options.length > 2 && (
+                          <Button
+                            onClick={() => removeOption(optIndex)}
+                            className="text-red-500 hover:text-red-700 p-2"
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 space-x-4">
+                    <Button 
+                      onClick={saveEditedQuestion}
+                      className="bg-gray-200 hover:bg-gray-300 text-custom-black rounded-full inline-flex items-center"
+                    >
+                      <Check className="h-4 w-4 mr-2" />
+                      保存編輯
+                    </Button>
+                    <Button 
+                      onClick={() => setEditingQuestionIndex(null)}
+                      className="bg-red-200 hover:bg-red-300 text-custom-black rounded-full inline-flex items-center"
+                    >
+                      取消
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="font-medium">問題 {index + 1}: {question.question}</p>
+                  <div className="mt-2 space-y-1">
+                    {question.options.map((option, optIndex) => (
+                      <p key={optIndex} className="text-sm text-gray-600">
+                        • {option}
+                      </p>
+                    ))}
+                  </div>
+                  <Button
+                    onClick={() => editQuestion(index)}
+                    className="mt-2 bg-blue-200 hover:bg-blue-300 text-custom-black rounded-full inline-flex items-center"
+                  >
+                    <Edit2 className="h-4 w-4 mr-2" />
+                    編輯
+                  </Button>
+                </>
+              )}
             </div>
           ))}
         </div>
       </div>
 
-      {/* 增問題表單 */}
+      {/* 新增問題區塊 */}
       <div className="mb-6 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
-        <h2 className="text-lg font-semibold mb-4">新增問題</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold">新增問題</h2>
+          <Button 
+            onClick={addQuestion}
+            className="bg-custom-secondary hover:bg-black hover:text-white rounded-full inline-flex items-center"
+          >
+            <Save className="h-4 w-4 mr-1" />
+            <span>保存</span>
+          </Button>
+        </div>
+        
         <div className="space-y-4">
           <Input
             placeholder="問題內容"
@@ -452,21 +674,14 @@ export default function CreateTest() {
         </div>
       </div>
 
-      {/* 新增問題 */}
-      <div className="mt-4 space-x-4">
-        <Button 
-          onClick={addQuestion}
-          className="bg-gray-200 hover:bg-gray-300 text-custom-black rounded-full inline-flex items-center"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          新增問題
-        </Button>
+      {/* 儲存測驗按鈕 */}
+      <div className="mt-4">
         <Button 
           onClick={saveTest}
-          className="bg-custom-secondary hover:bg-black hover:text-white rounded-full inline-flex items-center"
+          className="w-full bg-custom-secondary hover:bg-black hover:text-white rounded-full inline-flex items-center justify-center"
         >
-          <Save className="h-4 w-4 mr-2" />
-          儲存測驗
+          <Save className="h-4 w-4 mr-1" />
+          <span>儲存測驗</span>
         </Button>
       </div>
     </div>
