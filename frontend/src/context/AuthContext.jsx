@@ -26,19 +26,29 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('user');
   };
 
-  const register = async (name, email, password) => {
+  const register = async (username, account, password) => {
     try {
-      const response = await axios.post('/api/auth/register', {
-        name,
-        email,
-        password
-      });
+      const {
+        data: { success, message },
+      } = await axios.post('api/signup/', {
+        username,
+        account,
+        password,
+    }); 
+    /* 
+    testsignupname
+    testsignup@gmail.com
+    testsignup
+    */
       
-      const { user, token } = response.data;
-      setUser(user);
-      localStorage.setItem('token', token);
+    if (success) {
+        console.log(message);
+    }      
+
+    //   setUser(user);
+    //   localStorage.setItem('token', token);
       
-      return user;
+    //   return user;
     } catch (error) {
       throw new Error(error.response?.data?.message || '註冊失敗');
     }

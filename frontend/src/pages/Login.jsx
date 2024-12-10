@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import axios from 'axios';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -11,13 +12,13 @@ export default function Login() {
   const [error, setError] = useState('');
   
   const [loginData, setLoginData] = useState({
-    email: '',
+    account: '',
     password: ''
   });
 
   const [registerData, setRegisterData] = useState({
-    name: '',
-    email: '',
+    username: '',
+    account: '',
     password: '',
     confirmPassword: ''
   });
@@ -27,10 +28,19 @@ export default function Login() {
     setError('');
 
     try {
-      if (loginData.email === 'test@example.com' && loginData.password === 'password') {
+      const {
+        data: { success, message, username }
+      } = await axios.get('api/login/', {
+        params: {
+          account: loginData.account,
+          password: loginData.password,
+        }
+    })
+      if ((success || loginData.account === 'test@example.com' && loginData.password === 'password')) {
+        console.log(message)
         login({
-          email: loginData.email,
-          name: '測試用戶'
+          account: loginData.account,
+          username: username,
         });
         navigate('/');
       } else {
@@ -51,7 +61,7 @@ export default function Login() {
     }
 
     try {
-      await register(registerData.name, registerData.email, registerData.password);
+      await register(registerData.username, registerData.account, registerData.password);
       navigate('/');
     } catch (err) {
       setError(err.message || '註冊失敗');
@@ -99,9 +109,9 @@ export default function Login() {
                 電子郵件
               </label>
               <Input
-                type="email"
-                value={loginData.email}
-                onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                type="account"
+                value={loginData.account}
+                onChange={(e) => setLoginData({ ...loginData, account: e.target.value })}
                 required
                 className="w-full"
                 placeholder="請輸入電子郵件"
@@ -145,8 +155,8 @@ export default function Login() {
               </label>
               <Input
                 type="text"
-                value={registerData.name}
-                onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
+                value={registerData.username}
+                onChange={(e) => setRegisterData({ ...registerData, username: e.target.value })}
                 required
                 className="w-full"
                 placeholder="請輸入名稱"
@@ -158,9 +168,9 @@ export default function Login() {
                 電子郵件
               </label>
               <Input
-                type="email"
-                value={registerData.email}
-                onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+                type="account"
+                value={registerData.account}
+                onChange={(e) => setRegisterData({ ...registerData, account: e.target.value })}
                 required
                 className="w-full"
                 placeholder="請輸入電子郵件"
