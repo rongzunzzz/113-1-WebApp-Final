@@ -1,5 +1,5 @@
 from django.db import models
-
+import uuid
 
 # Create your models here.
 class Item(models.Model):
@@ -22,7 +22,8 @@ class User(models.Model):
         
 
 class Test(models.Model):
-    test_id = models.CharField(max_length=100, unique=True) 
+    # test_id = models.CharField(max_length=100, unique=True) 
+    test_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255) 
     user_id = models.CharField(max_length=100) 
     questions = models.JSONField() 
@@ -35,6 +36,8 @@ class Test(models.Model):
 
 
 class TestResult(models.Model):
+    # result_id = models.CharField(max_length=100, unique=True) 
+    result_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user_id = models.CharField(max_length=255)
     test_id = models.CharField(max_length=255)
     answers = models.JSONField() 

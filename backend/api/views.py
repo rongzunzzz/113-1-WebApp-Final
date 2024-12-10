@@ -2,11 +2,16 @@ import requests
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import viewsets
-from .models import Item, User, Test
+from .models import Item, User, Test, TestResult
 from .serializers import ItemSerializer, UserSerializer, TestSerializer
 from django.contrib.auth.hashers import make_password, check_password
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from django.http import JsonResponse
+import logging
 
+
+logger = logging.getLogger(__name__)
 
 class ItemViewSet(viewsets.ModelViewSet):
     queryset = Item.objects.all()
@@ -119,32 +124,31 @@ def saveTest(request):
     Save a test to the database.
     Input:
     {
-        "test_id": "test123",
         "title": "Sample Test",
-        "questions": [...],
-        "results": [...],
+        "questions": ["QQ1"],
+        "results": ["RES1"],
         "backgroundImage": "http://example.com/image.jpg",
         "user_id": "user456"
     }
     """
     data = request.data
-    test_id = data.get('test_id')
     title = data.get('title')
     questions = data.get('questions')
     results = data.get('results')
     backgroundImage = data.get('backgroundImage')
     user_id = data.get('user_id')
 
-    if not (test_id and title and questions and results and user_id):
+    if not (title and questions and results and user_id):
         return Response({"success": False, "error": "All fields are required."}, status=400)
 
     Test.objects.create(
-        test_id=test_id,
+        # test_id=test_id,
         title=title,
+        user_id=user_id,
         questions=questions,
         results=results,
         backgroundImage=backgroundImage,
-        user_id=user_id
+        
     )
     return Response({"success": True, "message": "Test saved successfully."}, status=201)
 
@@ -180,33 +184,38 @@ def getAllTests(request):
         {
             "test_id": test.test_id,
             "title": test.title,
+            "user_id": test.user_id,
             "questions": test.questions,
             "results": test.results,
             "backgroundImage": test.backgroundImage,
-            "createdAt": test.createdAt,
-            "user_id": test.user_id,
+            # "createdAt": test.createdAt,
         }
         for test in tests
     ]
-    return Response(data, status=200)
+    return Response({"data": data}, status=200)
 
 
 @api_view(['GET'])
-def getTestById(request, test_id):
+def getTestById(request):
     """
     Fetch a test by its ID.
+    Input:
+    {   
+        "test_id": "test123"
+    }
     """
+    test_id = request.data.get('test_id')
     test = get_object_or_404(Test, test_id=test_id)
     data = {
         "test_id": test.test_id,
         "title": test.title,
+        "user_id": test.user_id,
         "questions": test.questions,
         "results": test.results,
         "backgroundImage": test.backgroundImage,
-        "createdAt": test.createdAt,
-        "user_id": test.user_id,
+        # "createdAt": test.createdAt,
     }
-    return Response(data, status=200)
+    return Response({"data": data}, status=200)
 
 
 
@@ -216,9 +225,10 @@ def saveTestResult(request):
     Save user test results.
     Input:
     {
+        "result_id"
         "test_id": "test123",
         "user_id": "user456",
-        "answers": { "0": 1, "1": 2, ... },
+        "answers": ["Tmp1", "Tmp2"],
         "result_index": 0
     }
     """
@@ -236,19 +246,25 @@ def saveTestResult(request):
         user_id=user_id,
         answers=answers,
         result_index=result_index,
+        date=timezone.now(),
     )
-    return Response({"success": True, "message": "Result saved successfully."}, status=201)
+    return Response({"success": True, "message": "Result saved successfully."}, status=200)
 
 
 
 @api_view(['GET'])
-def getUserResults(request, user_id):
+def getUserResults(request):
     """
     Retrieve all results for a specific user.
+    Input:
+    {
+        "user_id": "user456"
+    }
     """
+    user_id = request.data.get('user_id')
     results = TestResult.objects.filter(user_id=user_id)
     if not results.exists():
-        return Response({"success": True, "results": []}, status=200)
+        return Response({"success": False, "data": []}, status=400)
 
     data = [
         {
@@ -259,15 +275,35 @@ def getUserResults(request, user_id):
         }
         for result in results
     ]
-    return Response({"success": True, "results": data}, status=200)
+    return Response({"success": True, "data": data}, status=200)
 
 
 @api_view(['PUT'])
-def updateTest(request, test_id):
+def updateTest(request):
     """
     Update an existing test.
+    
+    Input Testing:
+    {
+        "test_id": "test123",
+        "title": "Sample Test",
+        "questions": ["Update test 1"],
+        "results": ["Result 1"],
+        "backgroundImage": "http://example.com/image.jpg",
+        "user_id": "user456"
+    }
+    Output:
+    {
+        "test_id":"test123",
+        "title":"Sample Test",
+        "questions":["Update test 2"],
+        "results":["Result 1"],
+        "backgroundImage":"http://example.com/image.jpg",
+        "user_id":"user456"
+    }
     """
     data = request.data
+    test_id = data.get('test_id')
 
     try:
         test = Test.objects.get(test_id=test_id)
@@ -276,31 +312,42 @@ def updateTest(request, test_id):
         test.results = data.get('results', test.results)
         test.backgroundImage = data.get('backgroundImage', test.backgroundImage)
         test.save()
-
-        return Response({
+        data = {
             "test_id": test.test_id,
             "title": test.title,
             "questions": test.questions,
             "results": test.results,
             "backgroundImage": test.backgroundImage,
-            "createdAt": test.createdAt,
+            # "createdAt": test.createdAt,
             "user_id": test.user_id,
-        }, status=200)
+        }
+        return Response({"data": data}, status=200)
     except Test.DoesNotExist:
         return Response({"error": "Test not found."}, status=404)
 
 
 
 @api_view(['DELETE'])
-def deleteTestResult(request, result_id):
+def deleteTestResult(request):
     """
     Delete a user's test result.
     Input:
-    { "result_id": "result123" }
+    { 
+        "result_id": "Binary.createFromBase64('HqOWR8l0QIiOBnWUp7Md7w==', 3)",
+    }
     """
+    
+    data = request.data
+    result_id = data.get('result_id')
+    
     try:
-        result = TestResult.objects.get(id=result_id)
+        result = TestResult.objects.get(result_id=result_id)
         result.delete()
-        return Response({"success": True, "message": "Result deleted successfully."}, status=200)
+        return Response({'success': True, 'message': 'Result deleted successfully'}, status=200)
     except TestResult.DoesNotExist:
-        return Response({"error": "Result not found."}, status=404)
+        logger.error(f'TestResult with result_id {result_id} not found.')
+        return Response({'success': False, 'error': 'TestResult not found'}, status=404)
+    except Exception as e:
+        logger.error(f'Error deleting TestResult: {str(e)}')
+        return Response({'success': False, 'error': 'An error occurred during deletion'}, status=500)
+
