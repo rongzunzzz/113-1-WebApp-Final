@@ -84,7 +84,12 @@ def signup(request):
         return Response({"success": False, "error": "Account already exists."}, status=400)
 
     hashed_password = make_password(password)
-    user = User.objects.create(account=account, username=username, password=hashed_password)
+    user = User.objects.create(
+        account=account,
+        username=username,
+        password=hashed_password,
+        # id=some_id,
+    )
     return Response({"success": True, "message": "Signup successful."}, status=201)
 
 @api_view(['GET'])
@@ -196,7 +201,7 @@ def getAllTests(request):
         }
         for test in tests
     ]
-    return Response({"data": data}, status=200)
+    return Response({"userTests": data}, status=200)
 
 
 @api_view(['GET'])

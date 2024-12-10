@@ -34,21 +34,16 @@ export function AuthProvider({ children }) {
         username,
         account,
         password,
-    }); 
-    /* 
-    testsignupname
-    testsignup@gmail.com
-    testsignup
-    */
+      }); 
+      /* 
+      testsignupname
+      testsignup@gmail.com
+      testsignup
+      */
       
-    if (success) {
+      if (success) {
         console.log(message);
-    }      
-
-    //   setUser(user);
-    //   localStorage.setItem('token', token);
-      
-    //   return user;
+      }
     } catch (error) {
       throw new Error(error.response?.data?.message || '註冊失敗');
     }

@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { createContext, useState, useContext, useEffect } from 'react';
 
 const TestContext = createContext();
@@ -7,6 +8,9 @@ export function TestProvider({ children }) {
     const saved = localStorage.getItem('savedTests');
     return saved ? JSON.parse(saved) : [];
   });
+
+  const [ displayedAllTests, setDisplayedAllTests] = useState([]);
+  const [ displayedUserTests, setDisplayedUserTests] = useState([]);
 
   const [testResults, setTestResults] = useState(() => {
     const results = localStorage.getItem('testResults');
@@ -37,17 +41,32 @@ export function TestProvider({ children }) {
     localStorage.setItem('testResults', JSON.stringify(testResults));
   }, [testResults]);
 
-  const addTest = (newTest) => {
+  const addTest = async (newTest) => {
     console.log('Adding test:', newTest);
     if (!newTest.id) {
       newTest.id = `test_${Date.now()}`;
     }
     try {
-      setSavedTests(prev => {
-        const updated = [...prev, newTest];
-        console.log('Updated tests:', updated);
-        return updated;
-      });
+      const {
+        data: { success, message }
+      } = await axios.post('api/saveTest/', {
+        title: newTest.title,
+        questions: newTest.questions,
+        results: newTest.results,
+        backgroundImage: newTest.backgroundImage,
+        user_id: 'fake_user_id',
+      })
+
+      if (success) {
+        console.log(message);
+      }
+
+
+    //   setSavedTests(prev => {
+    //     const updated = [...prev, newTest];
+    //     console.log('Updated tests:', updated);
+    //     return updated;
+    //   });
     } catch (error) {
       console.error('Error in addTest:', error);
       throw error;
@@ -99,6 +118,10 @@ export function TestProvider({ children }) {
     <TestContext.Provider value={{
       savedTests,
       testResults,
+
+      displayedAllTests, setDisplayedAllTests,
+      displayedUserTests, setDisplayedUserTests,
+
       addTest,
       addResult,
       deleteTest,

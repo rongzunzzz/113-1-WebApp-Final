@@ -2,9 +2,15 @@ import { Link } from 'react-router-dom';
 import { useTest } from '../context/TestContext';
 import { Button } from '../components/ui/button';
 import { Trash2 } from 'lucide-react';
+import { useEffect } from 'react';
+import axios from 'axios';
 
 export default function Tests() {
-  const { savedTests, deleteTest } = useTest();
+  const { 
+    savedTests, setSavedTests,
+    displayedUserTests, setDisplayedUserTests,
+    deleteTest
+  } = useTest();
 
   const handleDelete = (testId, testTitle) => {
     if (window.confirm(`確定要刪除「${testTitle}」這個測驗嗎？`)) {
@@ -12,22 +18,38 @@ export default function Tests() {
     }
   };
 
+  useEffect(() => {
+    const getUserTests = async (user_id='fake_user_id') => {
+      const {
+        data: { userTests }
+      } = await axios.get('api/getAllTests/', {
+        params: {
+            userId: user_id,
+        }
+      });
+
+      setDisplayedUserTests(userTests);
+    };
+
+    getUserTests();
+  }, []);
+
   return (
     <div className="max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">可用測驗</h1>
       
-      {savedTests.length > 0 ? (
+      {displayedUserTests.length > 0 ? (
         <div className="space-y-4">
-          {savedTests.map((test) => (
+          {displayedUserTests.map((test, i) => (
             <div 
-              key={test.id} 
+              key={`${i}-${test.id}`} 
               className="bg-white p-6 rounded-lg shadow-md border border-gray-200"
             >
               <div className="flex justify-between items-center">
                 <div>
                   <h2 className="text-xl font-semibold mb-2">{test.title}</h2>
                   <p className="text-gray-600">
-                    共 {test.questions.length} 個問題
+                    共 {12} 個問題 {/* test.questions.length */}
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
