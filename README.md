@@ -85,6 +85,12 @@ python manage.py runserver
 
 curl -X POST http://127.0.0.1:8000/api/saveTest/ \
 -H "Content-Type: application/json" \
--d '{"test_id": "test123", "test_content": "This is a test content", "user_id": "user456"}'
-
+-d '{
+    "test_id": "test123",
+    "title": "Sample Test",
+    "questions": ["What is your name?", "What is your age?"],
+    "results": ["Result A", "Result B"],
+    "backgroundImage": "http://example.com/image.jpg",
+    "user_id": "user456"
+}'
 ```
