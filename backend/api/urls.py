@@ -19,4 +19,5 @@ urlpatterns = [
     path('getUserResults/', views.getUserResults, name='getUserResults'),
     path('updateTest/', views.updateTest, name='updateTest'),
     path('deleteTestResult/', views.deleteTestResult, name='deleteTestResult'),
+    path('getUserTests/', views.getUserTests, name='getUserTests'),
 ]

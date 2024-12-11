@@ -27,7 +27,7 @@ def generate_image(request):
     prompt = params.get('prompt')  # Use .get() to avoid KeyError
 
     if not prompt:
-        return Response({"error": "Prompt is required"}, status=400)
+        return Response({"message": "Error: Prompt is required"}, status=400)
 
     base_url = "https://image.pollinations.ai/prompt/"
     style = " in a cute style"
@@ -38,9 +38,9 @@ def generate_image(request):
         if response.status_code == 200:
             return Response({"image_url": response.url})
         else:
-            return Response({"error": "Failed to generate image"}, status=response.status_code)
+            return Response({"message": "Error: Failed to generate image"}, status=response.status_code)
     except Exception as e:
-        return Response({"error": str(e)}, status=500)
+        return Response({"message": str(e)}, status=500)
 
 
 @api_view(['GET'])
@@ -78,19 +78,23 @@ def signup(request):
     username = data.get('username')
 
     if not account or not password or not username:
-        return Response({"success": False, "error": "All fields are required."}, status=400)
+        return Response({"success": False, "message": "Error: All fields are required."}, status=400)
 
     if User.objects.filter(account=account).exists():
-        return Response({"success": False, "error": "Account already exists."}, status=400)
+        return Response({"success": False, "message": "Error: Account already exists."}, status=400)
 
     hashed_password = make_password(password)
     user = User.objects.create(
         account=account,
         username=username,
         password=hashed_password,
-        # id=some_id,
     )
-    return Response({"success": True, "message": "Signup successful."}, status=201)
+    user_id = str(user.user_id)
+    return Response({
+                    "success": True, 
+                    "message": "Signup successful.",
+                    "data": user_id,
+                    }, status=201)
 
 @api_view(['GET'])
 def login(request):
@@ -112,7 +116,7 @@ def login(request):
     password = data['password']
 
     if not account or not password:
-        return Response({"success": False, "error": "All fields are required."}, status=400)
+        return Response({"success": False, "message": "Error: All fields are required."}, status=400)
 
     try:
         user = User.objects.get(account=account)
@@ -120,12 +124,12 @@ def login(request):
             return Response({
                 "success": True,
                 "message": "Login successful.",
-                "username": user.username
+                "data": user,
             }, status=200)
         else:
-            return Response({"success": False, "error": "Invalid password."}, status=401)
+            return Response({"success": False, "message": "Error: Invalid password."}, status=401)
     except User.DoesNotExist:
-        return Response({"success": False, "error": "Account does not exist."}, status=404)
+        return Response({"success": False, "message": "Error: Account does not exist."}, status=404)
 
 @api_view(['POST'])
 def saveTest(request):
@@ -148,9 +152,9 @@ def saveTest(request):
     user_id = data.get('user_id')
 
     if not (title and questions and results and user_id):
-        return Response({"success": False, "error": "All fields are required."}, status=400)
+        return Response({"success": False, "message": "Error: All fields are required."}, status=400)
 
-    Test.objects.create(
+    test = Test.objects.create(
         # test_id=test_id,
         title=title,
         user_id=user_id,
@@ -159,7 +163,13 @@ def saveTest(request):
         backgroundImage=backgroundImage,
         
     )
-    return Response({"success": True, "message": "Test saved successfully."}, status=201)
+    test_id = str(test.test_id)
+    
+    return Response({
+                    "success": True, 
+                    "message": "Test saved successfully.",
+                    "data":test_id,
+                    }, status=201)
 
 
 
@@ -172,14 +182,14 @@ def deleteTest(request):
     test_id = data.get('test_id')
 
     if not test_id:
-        return Response({"success": False, "error": "Test ID is required."}, status=400)
+        return Response({"success": False, "message": "Error: Test ID is required."}, status=400)
 
     try:
         test = Test.objects.get(test_id=test_id)
         test.delete()
         return Response({"success": True, "message": "Test deleted successfully."}, status=200)
     except Test.DoesNotExist:
-        return Response({"success": False, "error": "Test not found."}, status=404)
+        return Response({"success": False, "message": "Error: Test not found."}, status=404)
 
 
 
@@ -201,8 +211,39 @@ def getAllTests(request):
         }
         for test in tests
     ]
-    return Response({"userTests": data}, status=200)
+    return Response({"data": data}, status=200)
 
+
+@api_view(['GET'])
+def getUserTests(request):
+    """
+    Fetch all saved tests from user.
+    Input:
+    {
+        "user_id": userid,
+    }
+    """
+    data = request.data  # Use request.data for POST requests
+    user_id = data.get('user_id')
+    
+    results = Test.objects.filter(user_id=user_id)
+    if not results.exists():
+        return Response({"success": True, "message": "No Test Exists", "data": []}, status=200)
+
+    data = [
+        {
+            "test_id": test.test_id,
+            "title": test.title,
+            "user_id": test.user_id,
+            "questions": test.questions,
+            "results": test.results,
+            "backgroundImage": test.backgroundImage,
+            # "createdAt": test.createdAt,
+        }
+        for test in results
+    ]
+    return Response({"success": True, "data": data}, status=200)
+    
 
 @api_view(['GET'])
 def getTestById(request):
@@ -248,7 +289,7 @@ def saveTestResult(request):
     result_index = data.get('result_index')
 
     if not (test_id and user_id and answers and result_index is not None):
-        return Response({"success": False, "error": "All fields are required."}, status=400)
+        return Response({"success": False, "message": "Error: All fields are required."}, status=400)
 
     TestResult.objects.create(
         test_id=test_id,
@@ -332,7 +373,7 @@ def updateTest(request):
         }
         return Response({"data": data}, status=200)
     except Test.DoesNotExist:
-        return Response({"error": "Test not found."}, status=404)
+        return Response({"message": "Error: Test not found."}, status=404)
 
 
 
@@ -355,8 +396,8 @@ def deleteTestResult(request):
         return Response({'success': True, 'message': 'Result deleted successfully'}, status=200)
     except TestResult.DoesNotExist:
         logger.error(f'TestResult with result_id {result_id} not found.')
-        return Response({'success': False, 'error': 'TestResult not found'}, status=404)
+        return Response({'success': False, 'message': 'Error: TestResult not found'}, status=404)
     except Exception as e:
         logger.error(f'Error deleting TestResult: {str(e)}')
-        return Response({'success': False, 'error': 'An error occurred during deletion'}, status=500)
+        return Response({'success': False, 'message': 'Error: An error occurred during deletion'}, status=500)
 
