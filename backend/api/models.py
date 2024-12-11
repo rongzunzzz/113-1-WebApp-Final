@@ -1,14 +1,6 @@
-from django.db import models
 import uuid
 
-# Create your models here.
-class Item(models.Model):
-    name = models.CharField(max_length=100)
-    description = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.name
+from django.db import models
 
 
 class User(models.Model):
@@ -25,15 +17,17 @@ class User(models.Model):
 class Test(models.Model):
     # test_id = models.CharField(max_length=100, unique=True) 
     test_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    title = models.CharField(max_length=255) 
+    title = models.CharField(max_length=255, default='未命名測驗') 
     user_id = models.CharField(max_length=100) 
-    questions = models.JSONField() 
-    results = models.JSONField() 
+    questions = models.JSONField(default=list) 
+    results = models.JSONField(default=list) 
     backgroundImage = models.TextField(null=True, blank=True) 
 
     def __str__(self):
         return self.title
-
+    
+    class Meta:
+        db_table = 'Test'
 
 
 class TestResult(models.Model):
@@ -47,3 +41,6 @@ class TestResult(models.Model):
 
     def __str__(self):
         return f"Result for test {self.test_id} by user {self.user_id}"
+    
+    class Meta:
+        db_table = 'TestResult'

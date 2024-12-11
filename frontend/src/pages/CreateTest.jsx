@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTest } from '../context/TestContext';
+import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Plus, Minus, Save, Image as ImageIcon, ChevronDown, Edit2, Check } from 'lucide-react';
@@ -8,6 +9,7 @@ import { Plus, Minus, Save, Image as ImageIcon, ChevronDown, Edit2, Check } from
 export default function CreateTest() {
   const navigate = useNavigate();
   const { addTest } = useTest();
+  const { user } = useAuth();
   const [currentTest, setCurrentTest] = useState({ 
     title: '', 
     questions: [],
@@ -145,7 +147,7 @@ export default function CreateTest() {
     try {
       // 創建新的測驗物件
       const newTest = {
-        id: `test_${Date.now()}`,
+        userId: user.userId,
         title: currentTest.title,
         questions: currentTest.questions.map(q => ({
           question: q.question,

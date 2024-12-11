@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTest } from '../context/TestContext';
+import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
 import { Trash2 } from 'lucide-react';
 import { useEffect } from 'react';
@@ -12,6 +13,8 @@ export default function Tests() {
     deleteTest
   } = useTest();
 
+  const { user } = useAuth();
+
   const handleDelete = (testId, testTitle) => {
     if (window.confirm(`確定要刪除「${testTitle}」這個測驗嗎？`)) {
       deleteTest(testId);
@@ -19,16 +22,18 @@ export default function Tests() {
   };
 
   useEffect(() => {
-    const getUserTests = async (user_id='fake_user_id') => {
+    const getUserTests = async () => {
       const {
-        data: { userTests }
-      } = await axios.get('api/getAllTests/', {
+        data: { success, message, userTests }
+      } = await axios.get('api/getUserTests/', {
         params: {
-            userId: user_id,
+            userId: user.userId,
         }
-      });
-
-      setDisplayedUserTests(userTests);
+      });      
+      console.log(message);
+      if (success) {
+        setDisplayedUserTests(userTests);
+      }
     };
 
     getUserTests();

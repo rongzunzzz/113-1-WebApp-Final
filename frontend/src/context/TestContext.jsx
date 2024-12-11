@@ -43,22 +43,19 @@ export function TestProvider({ children }) {
 
   const addTest = async (newTest) => {
     console.log('Adding test:', newTest);
-    if (!newTest.id) {
-      newTest.id = `test_${Date.now()}`;
-    }
     try {
       const {
-        data: { success, message }
+        data: { success, message, test_id }
       } = await axios.post('api/saveTest/', {
+        userId: newTest.userId,
         title: newTest.title,
         questions: newTest.questions,
         results: newTest.results,
         backgroundImage: newTest.backgroundImage,
-        user_id: 'fake_user_id',
       })
 
       if (success) {
-        console.log(message);
+        console.log(message + `test uuid: ${test_id}`);
       }
 
 

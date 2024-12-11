@@ -4,10 +4,12 @@ import axios from 'axios';
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+//   const [user, setUser] = useState(() => {
+//     const savedUser = localStorage.getItem('user');
+//     return savedUser ? JSON.parse(savedUser) : null;
+//   });
+
+  const [user, setUser] = useState({});
 
   useEffect(() => {
     if (user) {
@@ -18,7 +20,7 @@ export function AuthProvider({ children }) {
   }, [user]);
 
   const login = (userData) => {
-    setUser(userData);
+    setUser(userData); // { userId, username, account }
   };
 
   const logout = () => {
@@ -29,20 +31,20 @@ export function AuthProvider({ children }) {
   const register = async (username, account, password) => {
     try {
       const {
-        data: { success, message },
+        data: { success, message, user_id },
       } = await axios.post('api/signup/', {
         username,
         account,
         password,
       }); 
       /* 
-      testsignupname
-      testsignup@gmail.com
-      testsignup
+      testsignupwithidname
+      testsignupwithid@gmail.com
+      testsignupwithid
       */
       
       if (success) {
-        console.log(message);
+        console.log(message + `user uuid: ${user_id}`);
       }
     } catch (error) {
       throw new Error(error.response?.data?.message || '註冊失敗');

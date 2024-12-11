@@ -9,14 +9,22 @@ from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import Item, Test, TestResult, User
-from .serializers import ItemSerializer, TestSerializer, UserSerializer
+from .models import Test, TestResult, User
+from .serializers import TestResultSerializer, TestSerializer, UserSerializer
 
 logger = logging.getLogger(__name__)
 
-class ItemViewSet(viewsets.ModelViewSet):
-    queryset = Item.objects.all()
-    serializer_class = ItemSerializer
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+class TestViewSet(viewsets.ModelViewSet):
+    queryset = Test.objects.all()
+    serializer_class = TestSerializer
+
+class TestResultViewSet(viewsets.ModelViewSet):
+    queryset = TestResult.objects.all()
+    serializer_class = TestResultSerializer
 
 @api_view(['GET'])
 def generate_image(request):
@@ -69,7 +77,8 @@ def signup(request):
     Output:
     {
         "success":true,
-        "message":"Signup successful."
+        "message":"Signup successful.",
+        "user_id":"some_user_id",
     }
     """
     data = request.data
@@ -93,7 +102,7 @@ def signup(request):
     return Response({
                     "success": True, 
                     "message": "Signup successful.",
-                    "data": user_id,
+                    "user_id": user_id,
                     }, status=201)
 
 @api_view(['GET'])
@@ -121,10 +130,11 @@ def login(request):
     try:
         user = User.objects.get(account=account)
         if check_password(password, user.password):
+            serializer = UserSerializer(user)  # 使用 UserSerializer 序列化使用者資料
             return Response({
                 "success": True,
                 "message": "Login successful.",
-                "data": user,
+                "user": serializer.data,  # 序列化後的使用者資料
             }, status=200)
         else:
             return Response({"success": False, "message": "Error: Invalid password."}, status=401)
@@ -146,31 +156,27 @@ def saveTest(request):
     """
     data = request.data
     title = data.get('title')
+    user_id = data.get('userId')
     questions = data.get('questions')
     results = data.get('results')
     backgroundImage = data.get('backgroundImage')
-    user_id = data.get('user_id')
 
-    if not (title and questions and results and user_id):
+    if not (user_id and title and questions and results):
         return Response({"success": False, "message": "Error: All fields are required."}, status=400)
 
     test = Test.objects.create(
-        # test_id=test_id,
         title=title,
         user_id=user_id,
         questions=questions,
         results=results,
         backgroundImage=backgroundImage,
-        
     )
-    test_id = str(test.test_id)
     
     return Response({
                     "success": True, 
                     "message": "Test saved successfully.",
-                    "data":test_id,
-                    }, status=201)
-
+                    "test_id":str(test.test_id),
+                    }, status=200)
 
 
 @api_view(['POST'])
@@ -201,9 +207,9 @@ def getAllTests(request):
     tests = Test.objects.all()
     data = [
         {
-            "test_id": test.test_id,
+            "testId": test.test_id,
             "title": test.title,
-            "user_id": test.user_id,
+            "userId": test.user_id,
             "questions": test.questions,
             "results": test.results,
             "backgroundImage": test.backgroundImage,
@@ -220,21 +226,20 @@ def getUserTests(request):
     Fetch all saved tests from user.
     Input:
     {
-        "user_id": userid,
+        "userId": userid,
     }
     """
-    data = request.data  # Use request.data for POST requests
-    user_id = data.get('user_id')
-    
+    data = request.query_params  # Use request.data for POST requests
+    user_id = data.get('userId')
     results = Test.objects.filter(user_id=user_id)
     if not results.exists():
-        return Response({"success": True, "message": "No Test Exists", "data": []}, status=200)
+        return Response({"success": True, "message": "No Test Exists", "userTests": []}, status=200)
 
     data = [
         {
-            "test_id": test.test_id,
+            "testId": test.test_id,
             "title": test.title,
-            "user_id": test.user_id,
+            "userId": test.user_id,
             "questions": test.questions,
             "results": test.results,
             "backgroundImage": test.backgroundImage,
@@ -242,7 +247,11 @@ def getUserTests(request):
         }
         for test in results
     ]
-    return Response({"success": True, "data": data}, status=200)
+    return Response({
+        "success": True, 
+        "message": "Get user tests successfully", 
+        "userTests": data
+    }, status=200)
     
 
 @api_view(['GET'])

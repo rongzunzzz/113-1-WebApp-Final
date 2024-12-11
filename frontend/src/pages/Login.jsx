@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import axios from 'axios';
+import { Coins } from 'lucide-react';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ export default function Login() {
 
     try {
       const {
-        data: { success, message, username }
+        data: { success, message, user }
       } = await axios.get('api/login/', {
         params: {
           account: loginData.account,
@@ -38,9 +39,11 @@ export default function Login() {
     })
       if ((success || loginData.account === 'test@example.com' && loginData.password === 'password')) {
         console.log(message)
-        login({
+        console.log(user.user_id)
+        await login({
+          userId: user.user_id,
           account: loginData.account,
-          username: username,
+          username: user.username,
         });
         navigate('/');
       } else {
