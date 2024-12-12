@@ -11,6 +11,7 @@ import { Navbar } from './components/Navbar';
 import Home from './pages/Home';
 import Tests from './pages/Tests';
 import { TestProvider } from './context/TestContext';
+import EditTest from './pages/Edit';
 
 const PsychologyTestApp = () => {
   return (
@@ -24,6 +25,7 @@ const PsychologyTestApp = () => {
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/tests" element={<Tests />} />
+                <Route path="/edit/:testId" element={<EditTest />} />
                 <Route 
                   path="/create" 
                   element={

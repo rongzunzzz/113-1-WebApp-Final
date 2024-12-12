@@ -274,6 +274,7 @@ def getTestById(request):
         "backgroundImage": test.backgroundImage,
         # "createdAt": test.createdAt,
     }
+    print(data)
     return Response({"data": data}, status=200)
 
 
