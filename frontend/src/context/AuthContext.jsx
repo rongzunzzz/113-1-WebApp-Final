@@ -4,14 +4,12 @@ import axios from 'axios';
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-//   const [user, setUser] = useState(() => {
-//     const savedUser = localStorage.getItem('user');
-//     return savedUser ? JSON.parse(savedUser) : null;
-//   });
+  const [user, setUser] = useState(() => {  // 從 localStorage 讀取初始狀態
+    const savedUser = localStorage.getItem('user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
 
-  const [user, setUser] = useState({});
-
-  useEffect(() => {
+  useEffect(() => {  // 當使用者狀態改變時，更新 localStorage
     if (user) {
       localStorage.setItem('user', JSON.stringify(user));
     } else {
@@ -20,7 +18,8 @@ export function AuthProvider({ children }) {
   }, [user]);
 
   const login = (userData) => {
-    setUser(userData); // { userId, username, account }
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
   };
 
   const logout = () => {
