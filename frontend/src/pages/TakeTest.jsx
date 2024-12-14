@@ -59,13 +59,14 @@ export default function TakeTest() {
   };
 
   const submitTest = () => {
+    console.log('submitTest')
     if (Object.keys(answers).length !== currentTest.questions.length) {
       alert('請回答所有問題！');
       return;
     }
 
     const result = {
-      testId: currentTest.id,
+      testId: currentTest.testId,
       testTitle: currentTest.title,
       answers: answers,
       resultIndex: calculateFinalResult(),
@@ -74,9 +75,9 @@ export default function TakeTest() {
     
     addResult(result);
     
-    navigate(`/test/${currentTest.id}/result`, { 
+    navigate(`/test/${currentTest.testId}/result`, { 
       state: { 
-        testId: currentTest.id,
+        testId: currentTest.testId,
         resultIndex: result.resultIndex,
         answers: answers
       } 

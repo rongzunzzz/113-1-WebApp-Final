@@ -77,8 +77,8 @@ export function TestProvider({ children }) {
   // 新增取得特定測驗的函數
   const getTest = (testId) => {
     console.log('Getting test:', testId);
-    console.log('Available tests:', savedTests);
-    const test = savedTests.find(test => test.id === testId);
+    console.log('Available tests:', displayedUserTests);
+    const test = displayedUserTests.find(test => test.testId === testId);
     console.log('Found test:', test);
     return test || null;
   };

@@ -64,7 +64,7 @@ export default function Tests() {
                       編輯測驗
                     </Button>
                   </Link>
-                  <Link to={`/test/${test.id}`}>
+                  <Link to={`/test/${test.testId}`}>
                     <Button className="bg-custom-secondary hover:bg-black hover:text-white">
                       開始測驗
                     </Button>
