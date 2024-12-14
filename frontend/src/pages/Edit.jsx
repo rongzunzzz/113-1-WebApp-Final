@@ -43,16 +43,6 @@ export default function EditTest() {
             }
         });
 
-        const {
-            data: { data }
-            } = await axios.get('http://localhost:8000/api/getTestById/', {
-            params: {
-                test_id: testId,
-            }
-        });
-        console.log(data);
-
-
         const targetTest = userTests.find((test) => test.testId === testId);
 
         if (targetTest) {
