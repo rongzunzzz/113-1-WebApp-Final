@@ -31,7 +31,7 @@ export default function Login() {
     try {
       const {
         data: { success, message, user }
-      } = await axios.get('api/login/', {
+      } = await axios.get('/api/login/', {
         params: {
           account: loginData.account,
           password: loginData.password,

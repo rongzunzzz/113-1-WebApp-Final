@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTest } from '../context/TestContext';
+import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import axios from 'axios';
 
 export default function TakeTest() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { getTest, addResult } = useTest();
+  const { user } = useAuth();
   const [currentTest, setCurrentTest] = useState(null);
   const [answers, setAnswers] = useState({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -58,6 +61,21 @@ export default function TakeTest() {
     }
   };
 
+  const saveTestResult = async (result) => {
+    const {
+      data: { success, message }
+    } = await axios.post('/api/saveTestResult/', {
+      testId: result.testId,
+      userId: user.userId,
+      answers: result.answers,
+      resultIndex: result.resultIndex,
+    });
+
+    if (success) {
+      console.log(message);
+    }
+  };
+
   const submitTest = () => {
     console.log('submitTest')
     if (Object.keys(answers).length !== currentTest.questions.length) {
@@ -73,6 +91,8 @@ export default function TakeTest() {
       date: new Date().toISOString()
     };
     
+    saveTestResult(result);
+
     addResult(result);
     
     navigate(`/test/${currentTest.testId}/result`, { 

@@ -31,7 +31,7 @@ export function AuthProvider({ children }) {
     try {
       const {
         data: { success, message, user_id },
-      } = await axios.post('api/signup/', {
+      } = await axios.post('/api/signup/', {
         username,
         account,
         password,

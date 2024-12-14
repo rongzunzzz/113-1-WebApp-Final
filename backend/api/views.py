@@ -185,8 +185,7 @@ def deleteTest(request):
     Delete a test from the database by test ID.
     """
     data = request.data  # Use request.data for POST requests
-    test_id = data.get('test_id')
-
+    test_id = data.get('testId')
     if not test_id:
         return Response({"success": False, "message": "Error: Test ID is required."}, status=400)
 
@@ -286,17 +285,17 @@ def saveTestResult(request):
     Input:
     {
         "result_id"
-        "test_id": "test123",
-        "user_id": "user456",
-        "answers": ["Tmp1", "Tmp2"],
-        "result_index": 0
+        "testId": "test123",
+        "userId": "user456",
+        "answers": {'0': 0, '1': 0},
+        "resultIndex": 0
     }
     """
     data = request.data
-    test_id = data.get('test_id')
-    user_id = data.get('user_id')
+    test_id = data.get('testId')
+    user_id = data.get('userId')
     answers = data.get('answers')
-    result_index = data.get('result_index')
+    result_index = data.get('resultIndex')
 
     if not (test_id and user_id and answers and result_index is not None):
         return Response({"success": False, "message": "Error: All fields are required."}, status=400)
@@ -318,24 +317,28 @@ def getUserResults(request):
     Retrieve all results for a specific user.
     Input:
     {
-        "user_id": "user456"
+        "userId": "user456"
     }
     """
-    user_id = request.data.get('user_id')
+    user_id = request.query_params.get('userId')
     results = TestResult.objects.filter(user_id=user_id)
+    print(f"\n\n{user_id}\n\n")
+    print(f"\n\n{results}\n\n")
+
     if not results.exists():
-        return Response({"success": False, "data": []}, status=400)
+        return Response({"success": False, "userResults": []}, status=400)
 
     data = [
         {
-            "test_id": result.test_id,
-            "result_index": result.result_index,
+            "testId": result.test_id,
+            "resultIndex": result.result_index,
             "answers": result.answers,
             "date": result.date,
         }
         for result in results
     ]
-    return Response({"success": True, "data": data}, status=200)
+    print(f'\n\n{data}\n\n')
+    return Response({"success": True, "userResults": data}, status=200)
 
 
 @api_view(['PUT'])

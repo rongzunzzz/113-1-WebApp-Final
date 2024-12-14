@@ -1,9 +1,32 @@
 import { useTest } from '../context/TestContext';
+import { useAuth } from '../context/AuthContext';
 import { Trash2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
+import { useEffect } from 'react';
+import axios from 'axios';
 
 export default function TestResults() {
-  const { testResults, getTest, deleteResult } = useTest();
+  const { testResults, getTest, deleteResult,
+          displayedResults, setDisplayedResults } = useTest();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const getUserResults = async () => {
+      const {
+        data: { success, userResults }
+      } = await axios.get('/api/getUserResults/', {
+        params: {
+          userId: user.userId,
+        }
+      });
+      
+      if (success) {
+        console.log(userResults);
+      }
+    };
+    
+    getUserResults();
+  }, [])
 
   return (
     <div className="bg-custom-primary p-6 rounded-lg border border-black">

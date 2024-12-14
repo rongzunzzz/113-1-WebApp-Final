@@ -9,7 +9,6 @@ export function TestProvider({ children }) {
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [ displayedAllTests, setDisplayedAllTests] = useState([]);
   const [ displayedUserTests, setDisplayedUserTests] = useState([]);
 
   const [testResults, setTestResults] = useState(() => {
@@ -17,13 +16,25 @@ export function TestProvider({ children }) {
     return results ? JSON.parse(results) : [];
   });
 
+  const [displayedResults, setDisplayedResults] = useState([]);
+
   // 添加刪除測驗函數
-  const deleteTest = (testId) => {
-    if (window.confirm('確定要刪除這個測驗嗎？相關的測驗結果也會被刪除。')) {
-      setSavedTests(prev => prev.filter(test => test.id !== testId));
+  const deleteTest = async (testId) => {
+    const {
+      data: { success, message }
+    } = await axios.post('/api/deleteTest/', {
+      testId: testId, 
+    })
+
+    console.log(message);
+
+    if (success)  {
+      setSavedTests(prev => prev.filter(test => test.testId !== testId));
       // 同時刪除相關的測驗結果
       setTestResults(prev => prev.filter(result => result.testId !== testId));
-    }
+    } 
+
+    return success;
   };
 
   // 添加刪除測驗結果函數
@@ -46,7 +57,7 @@ export function TestProvider({ children }) {
     try {
       const {
         data: { success, message, test_id }
-      } = await axios.post('api/saveTest/', {
+      } = await axios.post('/api/saveTest/', {
         userId: newTest.userId,
         title: newTest.title,
         questions: newTest.questions,
@@ -116,11 +127,12 @@ export function TestProvider({ children }) {
       savedTests,
       testResults,
 
-      displayedAllTests, setDisplayedAllTests,
       displayedUserTests, setDisplayedUserTests,
 
       addTest,
       addResult,
+      displayedResults, setDisplayedResults,
+
       deleteTest,
       deleteResult,
       getTest,

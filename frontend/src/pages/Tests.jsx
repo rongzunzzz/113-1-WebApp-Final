@@ -15,9 +15,15 @@ export default function Tests() {
 
   const { user } = useAuth();
 
-  const handleDelete = (testId, testTitle) => {
+  const handleDelete = async (testId, testTitle) => {
     if (window.confirm(`確定要刪除「${testTitle}」這個測驗嗎？`)) {
-      deleteTest(testId);
+      const success = await deleteTest(testId);
+
+      if (success) {
+        setDisplayedUserTests(prevTests => 
+          prevTests.filter(test => String(test.id) !== String(testId))
+        );
+      }
     }
   };
 
@@ -25,7 +31,7 @@ export default function Tests() {
     const getUserTests = async () => {
       const {
         data: { success, message, userTests }
-      } = await axios.get('api/getUserTests/', {
+      } = await axios.get('/api/getUserTests/', {
         params: {
             userId: user.userId,
         }
@@ -55,7 +61,7 @@ export default function Tests() {
                 <div>
                   <h2 className="text-xl font-semibold mb-2">{test.title}</h2>
                   <p className="text-gray-600">
-                    共 {12} 個問題 {/* test.questions.length */}
+                    共 {test.questions.length} 個問題
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -70,7 +76,7 @@ export default function Tests() {
                     </Button>
                   </Link>
                   <Button 
-                    onClick={() => handleDelete(test.id, test.title)}
+                    onClick={() => handleDelete(test.testId, test.title)}
                     className="bg-white text-red-500 hover:bg-red-50"
                   >
                     <Trash2 className="h-5 w-5" />

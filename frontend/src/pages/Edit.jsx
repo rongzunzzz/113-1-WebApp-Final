@@ -11,7 +11,7 @@ export default function EditTest() {
 
   const { testId } = useParams(); // Access the `id` parameter
   const navigate = useNavigate();
-  const { addTest } = useTest();
+  const { addTest, deleteTest } = useTest();
   const { user } = useAuth();
   const [currentTest, setCurrentTest] = useState({ 
     title: '', 
@@ -37,7 +37,7 @@ export default function EditTest() {
     const getUserTests = async () => {  
         const {
             data: { success, message, userTests }
-            } = await axios.get('http://localhost:8000/api/getUserTests/', {
+            } = await axios.get('/api/getUserTests/', {
             params: {
                 userId: user.userId,
             }
@@ -217,6 +217,9 @@ export default function EditTest() {
 
       // 添加測驗
       await addTest(newTest);
+
+      // 然後偷偷的把原本的刪掉
+      await deleteTest(testId);
       
       // 顯示成功消息
       alert('測驗已成功保存！');
