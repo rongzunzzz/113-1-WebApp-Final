@@ -108,12 +108,6 @@ export function TestProvider({ children }) {
     console.log(result);
     
     return { "success": success, "test": result };
-
-    // console.log('Getting test:', testId);
-    // console.log('Available tests:', displayedUserTests);
-    // const test = displayedUserTests.find(test => test.testId === testId);
-    // console.log('Found test:', test);
-    // return test || null;
   };
 
   // 新增計算測驗結果的函數

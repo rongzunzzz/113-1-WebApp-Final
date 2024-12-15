@@ -2,31 +2,46 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useTest } from '../context/TestContext';
 import { Button } from '../components/ui/button';
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react'; // 新增
 
 export default function TestResult() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const { getTest } = useTest();
-  
-  if (!state) {
-    navigate('/tests');
-    return null;
+  const [test, setTest] = useState(null); // 新增
+  const [loading, setLoading] = useState(true); // 新增
+
+  useEffect(() => {
+    if (!state) {
+      navigate('/tests');
+      return;
+    }
+
+    const fetchTest = async () => {
+      try {
+        const { success, test } = await getTest(state.testId);
+        if (!success) {
+          navigate('/tests');
+          return;
+        }
+        setTest(test);
+      } catch (error) {
+        console.error('Error fetching test:', error);
+        navigate('/tests');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTest();
+  }, [state, navigate, getTest]);
+
+  if (!state || loading) {
+    return <div>載入中...</div>; // 或其他載入中的UI
   }
 
   const { testId, resultIndex, answers } = state;
-  
-  console.log(testId)
-  console.log(answers)
-  const { success, test } = getTest(testId);
-  
-  if (!success) {
-    navigate('/tests');
-    return null;
-  }
-  console.log(test);
   const result = test.results[resultIndex];
-  console.log(result);
-
 
   return (
     <div className="max-w-2xl mx-auto p-6">
@@ -88,4 +103,4 @@ export default function TestResult() {
       </div>
     </div>
   );
-} 
+}
