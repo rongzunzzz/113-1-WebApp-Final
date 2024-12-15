@@ -64,7 +64,7 @@ export default function TestResults() {
           displayedResults.map(async (result) => {
             try {
               const {
-                data: { success, test, message }
+                data: { success, message, test }
               } = await axios.get('/api/getTestById/', {
                 params: {
                   testId: result.testId,

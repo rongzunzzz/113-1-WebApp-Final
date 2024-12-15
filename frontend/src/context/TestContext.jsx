@@ -57,7 +57,7 @@ export function TestProvider({ children }) {
     console.log('Adding test:', newTest);
     try {
       const {
-        data: { success, message, test_id }
+        data: { success, message, testId }
       } = await axios.post('/api/saveTest/', {
         userId: newTest.userId,
         title: newTest.title,
@@ -67,7 +67,7 @@ export function TestProvider({ children }) {
       })
 
       if (success) {
-        console.log(message + `test uuid: ${test_id}`);
+        console.log(message + `test uuid: ${testId}`);
       }
 
 
@@ -87,12 +87,26 @@ export function TestProvider({ children }) {
   };
 
   // 新增取得特定測驗的函數
-  const getTest = (testId) => {
-    console.log('Getting test:', testId);
-    console.log('Available tests:', displayedUserTests);
-    const test = displayedUserTests.find(test => test.testId === testId);
-    console.log('Found test:', test);
-    return test || null;
+  const getTest = async (testId) => {
+    const {
+      data: { success, test }
+    } = await axios.get('/api/getTestById/', {
+      params: {
+        testId: testId,
+      }
+    });
+    
+    const result = success? test : null;
+
+    console.log(result);
+    
+    return { "success": success, "test": result };
+
+    // console.log('Getting test:', testId);
+    // console.log('Available tests:', displayedUserTests);
+    // const test = displayedUserTests.find(test => test.testId === testId);
+    // console.log('Found test:', test);
+    // return test || null;
   };
 
   // 新增計算測驗結果的函數

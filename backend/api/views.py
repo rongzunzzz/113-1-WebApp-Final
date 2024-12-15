@@ -175,7 +175,7 @@ def saveTest(request):
     return Response({
                     "success": True, 
                     "message": "Test saved successfully.",
-                    "test_id":str(test.test_id),
+                    "testId":str(test.test_id),
                     }, status=200)
 
 
@@ -306,16 +306,20 @@ def getTestById(request):
     test_id = request.query_params.get('testId')
     test = get_object_or_404(Test, test_id=test_id)
     data = {
-        "test_id": test.test_id,
+        "testId": test.test_id,
         "title": test.title,
-        "user_id": test.user_id,
+        "userId": test.user_id,
         "questions": test.questions,
         "results": test.results,
         "backgroundImage": test.backgroundImage,
         # "createdAt": test.createdAt,
     }
-    print(data['test_id'], data['title'])
-    return Response({"success": True, "test": data}, status=200)
+    print(data['testId'], data['title'])
+    return Response({
+        "success": True,
+        "message": f"Get test by id {test_id} successfully",
+        "test": data
+    }, status=200)
 
 
 
@@ -337,8 +341,11 @@ def saveTestResult(request):
     user_id = data.get('userId')
     answers = data.get('answers')
     result_index = data.get('resultIndex')
+    print(f"\n\n{answers}\n\n")
+
 
     if not (test_id and user_id and answers and result_index is not None):
+        print("\n\nhere\n\n")
         return Response({"success": False, "message": "Error: All fields are required."}, status=400)
 
     TestResult.objects.create(
@@ -367,7 +374,11 @@ def getUserResults(request):
     print(f"\n\n{results}\n\n")
 
     if not results.exists():
-        return Response({"success": False, "userResults": []}, status=400)
+        return Response({
+            "success": False, 
+            "message": "No user result exists", 
+            "userResults": []
+        }, status=200)
 
     data = [
         {
@@ -379,7 +390,11 @@ def getUserResults(request):
         for result in results
     ]
     print(f'\n\n{data}\n\n')
-    return Response({"success": True, "userResults": data}, status=200)
+    return Response({
+        "success": True, 
+        "message": "Get user results successfully",
+        "userResults": data,
+    }, status=200)
 
 
 @api_view(['PUT'])

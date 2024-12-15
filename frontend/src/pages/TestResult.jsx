@@ -14,14 +14,19 @@ export default function TestResult() {
   }
 
   const { testId, resultIndex, answers } = state;
-  const test = getTest(testId);
   
-  if (!test) {
+  console.log(testId)
+  console.log(answers)
+  const { success, test } = getTest(testId);
+  
+  if (!success) {
     navigate('/tests');
     return null;
   }
-
+  console.log(test);
   const result = test.results[resultIndex];
+  console.log(result);
+
 
   return (
     <div className="max-w-2xl mx-auto p-6">
