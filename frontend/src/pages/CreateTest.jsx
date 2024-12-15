@@ -235,20 +235,24 @@ export default function CreateTest() {
     setGeneratingIndex(index);
     setLoading(true);
     try {
-      const response = await fetch('/api/generate-image', {
-        method: 'POST',
+      const response = await fetch(`/api/generate-image/?prompt=${encodeURIComponent(description)}`, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt: description })
+        }
       });
-      const data = await response.json();
       
-      // 更新結果中的圖片URL
+      if (!response.ok) {
+        throw new Error('圖片生成失敗');
+      }
+      
+      const data = await response.json();
+      console.log('Generated image data:', data);  // 添加調試日誌
+      
       setCurrentTest(prev => ({
         ...prev,
         results: prev.results.map((result, i) => 
-          i === index ? { ...result, imageUrl: data.imageUrl } : result
+          i === index ? { ...result, imageUrl: data.image_url } : result
         )
       }));
     } catch (error) {
