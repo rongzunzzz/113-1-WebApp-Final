@@ -1,26 +1,20 @@
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 import { useTest } from '../context/TestContext';
 import { useAuth } from '../context/AuthContext';
-import { Button } from '../components/ui/button';
-import { Trash2 } from 'lucide-react';
-import { useEffect } from 'react';
-import axios from 'axios';
+import { TestSection } from '../components/TestSection';
 
 export default function Tests() {
-  const { 
-    savedTests, setSavedTests,
-    displayedUserTests, setDisplayedUserTests,
-    deleteTest
-  } = useTest();
+  const { deleteTest } = useTest();
 
   const { user } = useAuth();
+  const [displayedTests, setDisplayedTests] = useState([]);
 
   const handleDelete = async (testId, testTitle) => {
     if (window.confirm(`確定要刪除「${testTitle}」這個測驗嗎？`)) {
       const success = await deleteTest(testId);
-
       if (success) {
-        setDisplayedUserTests(prevTests => 
+        setDisplayedTests(prevTests => 
           prevTests.filter(test => String(test.id) !== String(testId))
         );
       }
@@ -28,69 +22,43 @@ export default function Tests() {
   };
 
   useEffect(() => {
-    const getUserTests = async () => {
-      const {
-        data: { success, message, userTests }
-      } = await axios.get('/api/getUserTests/', {
-        params: {
-            userId: user.userId,
+    const fetchTests = async () => {
+      try {
+        const { data: { success, message, allTests } } = await axios.get('/api/getAllTests/');
+        if (success) {
+          console.log('Tests fetched successfully:', message);
+          setDisplayedTests(allTests);
         }
-      });      
-      console.log(message);
-      if (success) {
-        console.log(userTests)
-        setDisplayedUserTests(userTests);
+      } catch (error) {
+        console.error('Error fetching tests:', error);
       }
     };
 
-    getUserTests();
+    fetchTests();
   }, []);
+
+  const myTests = displayedTests.filter(test => test.userId === user.userId);
+  const othersTests = displayedTests.filter(test => test.userId !== user.userId);
 
   return (
     <div className="max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">可用測驗</h1>
       
-      {displayedUserTests.length > 0 ? (
-        <div className="space-y-4">
-          {displayedUserTests.map((test, i) => (
-            <div 
-              key={`${i}-${test.id}`} 
-              className="bg-white p-6 rounded-lg shadow-md border border-gray-200"
-            >
-              <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="text-xl font-semibold mb-2">{test.title}</h2>
-                  <p className="text-gray-600">
-                    共 {test.questions.length} 個問題
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                <Link to={`/edit/${test.testId}`}>
-                    <Button className="bg-custom-secondary hover:bg-black hover:text-white">
-                      編輯測驗
-                    </Button>
-                  </Link>
-                  <Link to={`/test/${test.testId}`}>
-                    <Button className="bg-custom-secondary hover:bg-black hover:text-white">
-                      開始測驗
-                    </Button>
-                  </Link>
-                  <Button 
-                    onClick={() => handleDelete(test.testId, test.title)}
-                    className="bg-white text-red-500 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <p className="text-gray-600">目前沒有可用的測驗</p>
-        </div>
-      )}
+      <TestSection
+        title="我的測驗"
+        tests={myTests}
+        isOwner={true}
+        onDelete={handleDelete}
+        emptyMessage="你還沒有建立任何測驗"
+      />
+
+      <TestSection
+        title="其他測驗"
+        tests={othersTests}
+        isOwner={false}
+        onDelete={handleDelete}
+        emptyMessage="目前沒有其他人的測驗"
+      />
     </div>
   );
-} 
+}

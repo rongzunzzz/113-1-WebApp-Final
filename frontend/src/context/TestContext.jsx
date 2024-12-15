@@ -9,7 +9,8 @@ export function TestProvider({ children }) {
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [ displayedUserTests, setDisplayedUserTests] = useState([]);
+  const [displayedUserTests, setDisplayedUserTests] = useState([]);
+  const [displayedOthersTests, setDisplayedOthersTests] = useState([]);
 
   const [testResults, setTestResults] = useState(() => {
     const results = localStorage.getItem('testResults');
@@ -128,6 +129,7 @@ export function TestProvider({ children }) {
       testResults,
 
       displayedUserTests, setDisplayedUserTests,
+      displayedOthersTests, setDisplayedOthersTests,
 
       addTest,
       addResult,
