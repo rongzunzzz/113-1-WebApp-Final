@@ -235,20 +235,24 @@ export default function CreateTest() {
     setGeneratingIndex(index);
     setLoading(true);
     try {
-      const response = await fetch('/api/generate-image', {
-        method: 'POST',
+      const response = await fetch(`/api/generate-image/?prompt=${encodeURIComponent(description)}`, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt: description })
+        }
       });
-      const data = await response.json();
       
-      // 更新結果中的圖片URL
+      if (!response.ok) {
+        throw new Error('圖片生成失敗');
+      }
+      
+      const data = await response.json();
+      console.log('Generated image data:', data);  // 添加調試日誌
+      
       setCurrentTest(prev => ({
         ...prev,
         results: prev.results.map((result, i) => 
-          i === index ? { ...result, imageUrl: data.imageUrl } : result
+          i === index ? { ...result, imageUrl: data.image_url } : result
         )
       }));
     } catch (error) {
@@ -465,14 +469,21 @@ export default function CreateTest() {
                         <img
                           src={result.imageUrl}
                           alt={result.title}
-                          className="w-full h-40 object-cover rounded-md"
+                          className="w-full h-auto max-h-[400px] object-contain rounded-md"
                         />
                         <Button
                           onClick={() => generateImage(result.description, index)}
+                          disabled={loading && generatingIndex === index}
                           className="absolute top-2 right-2 bg-white/80 hover:bg-white text-black text-sm px-2 py-1 rounded flex items-center"
                         >
-                          <ImageIcon className="w-4 h-4 mr-1" />
-                          <span>重新生成</span>
+                          {loading && generatingIndex === index ? (
+                            <span>生成中...</span>
+                          ) : (
+                            <>
+                              <ImageIcon className="w-4 h-4 mr-1" />
+                              <span>重新生成</span>
+                            </>
+                          )}
                         </Button>
                       </div>
                     ) : (
