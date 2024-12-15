@@ -1,4 +1,5 @@
 import { createContext, useState, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const AuthContext = createContext();
@@ -37,9 +38,9 @@ export function AuthProvider({ children }) {
         password,
       }); 
       /* 
-      testsignupwithidname
-      testsignupwithid@gmail.com
-      testsignupwithid
+      testname
+      test@gmail.com
+      test
       */
       
       if (success) {

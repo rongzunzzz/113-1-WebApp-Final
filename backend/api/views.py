@@ -203,7 +203,9 @@ def getAllTests(request):
     """
     Fetch all saved tests.
     """
+    print("\n\ngetAllTests\n\n")
     tests = Test.objects.all()
+    print(tests)
     data = [
         {
             "testId": test.test_id,
@@ -216,7 +218,10 @@ def getAllTests(request):
         }
         for test in tests
     ]
-    return Response({"data": data}, status=200)
+    return Response({"success": True, 
+        "message": "Get all tests successfully", 
+        "allTests": data
+    }, status=200)
 
 
 @api_view(['GET'])
@@ -232,7 +237,7 @@ def getUserTests(request):
     user_id = data.get('userId')
     results = Test.objects.filter(user_id=user_id)
     if not results.exists():
-        return Response({"success": True, "message": "No Test Exists", "userTests": []}, status=200)
+        return Response({"success": True, "message": "No User Test Exists", "userTests": []}, status=200)
 
     data = [
         {
@@ -251,6 +256,42 @@ def getUserTests(request):
         "message": "Get user tests successfully", 
         "userTests": data
     }, status=200)
+
+
+@api_view(['GET'])
+def getOthersTests(request):
+    """
+    Fetch all saved tests from user.
+    Input:
+    {
+        "userId": userid,
+    }
+    """
+    data = request.query_params  # Use request.data for POST requests
+    user_id = data.get('userId')
+    print(f"\n\n{user_id}\n\n")
+    results = Test.objects.exclude(user_id=user_id)
+    print(f"\n\n{results}\n\n")
+    if not results.exists():
+        return Response({"success": True, "message": "No Test of Others Exists", "othersTests": []}, status=200)
+
+    data = [
+        {
+            "testId": test.test_id,
+            "title": test.title,
+            "userId": test.user_id,
+            "questions": test.questions,
+            "results": test.results,
+            "backgroundImage": test.backgroundImage,
+            # "createdAt": test.createdAt,
+        }
+        for test in results
+    ]
+    return Response({
+        "success": True, 
+        "message": "Get others' tests successfully", 
+        "userTests": data
+    }, status=200)
     
 
 @api_view(['GET'])
@@ -262,7 +303,7 @@ def getTestById(request):
         "test_id": "test123"
     }
     """
-    test_id = request.data.get('test_id')
+    test_id = request.query_params.get('testId')
     test = get_object_or_404(Test, test_id=test_id)
     data = {
         "test_id": test.test_id,
@@ -273,8 +314,8 @@ def getTestById(request):
         "backgroundImage": test.backgroundImage,
         # "createdAt": test.createdAt,
     }
-    print(data)
-    return Response({"data": data}, status=200)
+    print(data['test_id'], data['title'])
+    return Response({"success": True, "test": data}, status=200)
 
 
 
