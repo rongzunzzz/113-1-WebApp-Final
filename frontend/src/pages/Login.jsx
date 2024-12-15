@@ -39,7 +39,6 @@ export default function Login() {
     })
       if ((success || loginData.account === 'test@example.com' && loginData.password === 'password')) {
         console.log(message)
-        console.log(user.user_id)
         await login({
           userId: user.user_id,
           account: loginData.account,

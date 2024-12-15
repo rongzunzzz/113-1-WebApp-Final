@@ -36,12 +36,7 @@ export function AuthProvider({ children }) {
         username,
         account,
         password,
-      }); 
-      /* 
-      testname
-      test@gmail.com
-      test
-      */
+      });
       
       if (success) {
         console.log(message + `user uuid: ${user_id}`);

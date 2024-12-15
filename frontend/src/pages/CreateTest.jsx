@@ -209,7 +209,6 @@ export default function CreateTest() {
   };
 
   const handleOptionChange = (index, value) => {
-    console.log('Changing option:', index, value); // 添加調試日誌
     setNewQuestion(prev => {
       const newOptions = [...prev.options];
       newOptions[index] = value;

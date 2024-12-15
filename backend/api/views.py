@@ -26,6 +26,7 @@ class TestResultViewSet(viewsets.ModelViewSet):
     queryset = TestResult.objects.all()
     serializer_class = TestResultSerializer
 
+
 @api_view(['GET'])
 def generate_image(request):
     """
@@ -50,19 +51,6 @@ def generate_image(request):
     except Exception as e:
         return Response({"message": str(e)}, status=500)
 
-
-@api_view(['GET'])
-def test_api(request):
-    params = request.query_params
-    print(params)
-
-    param1 = params['param1']
-    print(param1)
-
-    param_list = params.getlist('paramList')
-    print(param_list)
-
-    return Response({"message": f"API is working! We get {param1} and {param_list}"})
 
 @api_view(['POST'])
 def signup(request):
@@ -105,6 +93,7 @@ def signup(request):
                     "user_id": user_id,
                     }, status=201)
 
+
 @api_view(['GET'])
 def login(request):
     """
@@ -140,6 +129,7 @@ def login(request):
             return Response({"success": False, "message": "Error: Invalid password."}, status=401)
     except User.DoesNotExist:
         return Response({"success": False, "message": "Error: Account does not exist."}, status=404)
+
 
 @api_view(['POST'])
 def saveTest(request):
@@ -199,15 +189,12 @@ def deleteTest(request):
         return Response({"success": False, "message": "Error: Test not found."}, status=404)
 
 
-
 @api_view(['GET'])
 def getAllTests(request):
     """
     Fetch all saved tests.
     """
-    print("\n\ngetAllTests\n\n")
     tests = Test.objects.all()
-    print(tests)
     data = [
         {
             "testId": test.test_id,
@@ -216,7 +203,6 @@ def getAllTests(request):
             "questions": test.questions,
             "results": test.results,
             "backgroundImage": test.backgroundImage,
-            # "createdAt": test.createdAt,
         }
         for test in tests
     ]
@@ -249,7 +235,6 @@ def getUserTests(request):
             "questions": test.questions,
             "results": test.results,
             "backgroundImage": test.backgroundImage,
-            # "createdAt": test.createdAt,
         }
         for test in results
     ]
@@ -259,42 +244,6 @@ def getUserTests(request):
         "userTests": data
     }, status=200)
 
-
-@api_view(['GET'])
-def getOthersTests(request):
-    """
-    Fetch all saved tests from user.
-    Input:
-    {
-        "userId": userid,
-    }
-    """
-    data = request.query_params  # Use request.data for POST requests
-    user_id = data.get('userId')
-    print(f"\n\n{user_id}\n\n")
-    results = Test.objects.exclude(user_id=user_id)
-    print(f"\n\n{results}\n\n")
-    if not results.exists():
-        return Response({"success": True, "message": "No Test of Others Exists", "othersTests": []}, status=200)
-
-    data = [
-        {
-            "testId": test.test_id,
-            "title": test.title,
-            "userId": test.user_id,
-            "questions": test.questions,
-            "results": test.results,
-            "backgroundImage": test.backgroundImage,
-            # "createdAt": test.createdAt,
-        }
-        for test in results
-    ]
-    return Response({
-        "success": True, 
-        "message": "Get others' tests successfully", 
-        "userTests": data
-    }, status=200)
-    
 
 @api_view(['GET'])
 def getTestById(request):
@@ -314,15 +263,12 @@ def getTestById(request):
         "questions": test.questions,
         "results": test.results,
         "backgroundImage": test.backgroundImage,
-        # "createdAt": test.createdAt,
     }
-    print(data['testId'], data['title'])
     return Response({
         "success": True,
         "message": f"Get test by id {test_id} successfully",
         "test": data
     }, status=200)
-
 
 
 @api_view(['POST'])
@@ -343,11 +289,8 @@ def saveTestResult(request):
     user_id = data.get('userId')
     answers = data.get('answers')
     result_index = data.get('resultIndex')
-    print(f"\n\n{answers}\n\n")
-
 
     if not (test_id and user_id and answers and result_index is not None):
-        print("\n\nhere\n\n")
         return Response({"success": False, "message": "Error: All fields are required."}, status=400)
 
     TestResult.objects.create(
@@ -358,7 +301,6 @@ def saveTestResult(request):
         date=timezone.now(),
     )
     return Response({"success": True, "message": "Result saved successfully."}, status=200)
-
 
 
 @api_view(['GET'])
@@ -372,9 +314,6 @@ def getUserResults(request):
     """
     user_id = request.query_params.get('userId')
     results = TestResult.objects.filter(user_id=user_id)
-    print(f"\n\n{user_id}\n\n")
-    print(f"\n\n{results}\n\n")
-
     if not results.exists():
         return Response({
             "success": False, 
@@ -392,7 +331,6 @@ def getUserResults(request):
         }
         for result in results
     ]
-    print(f'\n\n{data}\n\n')
     return Response({
         "success": True, 
         "message": "Get user results successfully",
@@ -448,7 +386,6 @@ def updateTest(request):
         return Response({"message": "Error: Test not found."}, status=404)
 
 
-
 @api_view(['DELETE'])
 def deleteResult(request):
     """
@@ -458,12 +395,8 @@ def deleteResult(request):
         "result_id": "Binary.createFromBase64('HqOWR8l0QIiOBnWUp7Md7w==', 3)",
     }
     """
-    
     data = request.data
-    result_id = data.get('resultId')
-
-    print(f"\n\n{result_id}\n\n")
-    
+    result_id = data.get('resultId')    
     try:
         result = TestResult.objects.get(result_id=result_id)
         result.delete()
@@ -474,4 +407,3 @@ def deleteResult(request):
     except Exception as e:
         logger.error(f'Error deleting TestResult: {str(e)}')
         return Response({'success': False, 'message': 'Error: An error occurred during deletion'}, status=500)
-

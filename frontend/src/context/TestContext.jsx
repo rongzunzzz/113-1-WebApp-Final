@@ -35,7 +35,6 @@ export function TestProvider({ children }) {
 
   // 添加刪除測驗結果函數
   const deleteResult = async (resultIndex) => {
-    console.log(resultIndex);
     const {
       data: { success, message }
     } = await axios.delete('/api/deleteResult/', {
@@ -61,7 +60,6 @@ export function TestProvider({ children }) {
   }, [testResults]);
 
   const addTest = async (newTest) => {
-    console.log('Adding test:', newTest);
     try {
       const {
         data: { success, message, testId }
@@ -76,13 +74,6 @@ export function TestProvider({ children }) {
       if (success) {
         console.log(message + `test uuid: ${testId}`);
       }
-
-
-    //   setSavedTests(prev => {
-    //     const updated = [...prev, newTest];
-    //     console.log('Updated tests:', updated);
-    //     return updated;
-    //   });
     } catch (error) {
       console.error('Error in addTest:', error);
       throw error;
@@ -104,9 +95,6 @@ export function TestProvider({ children }) {
     });
     
     const result = success? test : null;
-
-    console.log(result);
-    
     return { "success": success, "test": result };
   };
 

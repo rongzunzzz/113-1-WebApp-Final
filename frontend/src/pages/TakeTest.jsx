@@ -16,10 +16,8 @@ export default function TakeTest() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   useEffect(() => {
-    console.log('Loading test with ID:', id);
     const getStartTest = async () => {
        const { success, test } = await getTest(id);
-       console.log('Loaded test:', test);
        if (!success) {
          navigate('/tests');
          return;
@@ -27,26 +25,14 @@ export default function TakeTest() {
        setCurrentTest(test);
     }
 
-    getStartTest();    
-    
-    // const {
-    //   data: { success, test }
-    // } = await axios.get('/api/getTestById/', {
-    //   params: {
-    //     testId: id,
-    //   }
-    // });
-    
+    getStartTest();
   }, [id, navigate, getTest]);
 
   if (!currentTest) {
     return <div>載入中...</div>;
   }
 
-  console.log('Current question index:', currentQuestionIndex);
-  console.log('Current test questions:', currentTest.questions);
   const currentQuestion = currentTest.questions[currentQuestionIndex];
-  console.log('Current question:', currentQuestion);
 
   if (!currentQuestion) {
     console.error('No question found at index:', currentQuestionIndex);
@@ -75,7 +61,6 @@ export default function TakeTest() {
   };
 
   const saveTestResult = async (result) => {
-    console.log(result);
     const {
       data: { success, message }
     } = await axios.post('/api/saveTestResult/', {
@@ -88,14 +73,10 @@ export default function TakeTest() {
   };
 
   const submitTest = async () => {
-    console.log('submitTest')
     if (Object.keys(answers).length !== currentTest.questions.length) {
       alert('請回答所有問題！');
       return;
     }
-
-    console.log("currenetTest:...")
-    console.log(currentTest)
 
     const result = {
       testId: currentTest.testId,

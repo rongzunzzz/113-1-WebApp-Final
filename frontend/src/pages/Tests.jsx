@@ -19,7 +19,7 @@ export default function Tests() {
       try {
         const { data: { success, message, allTests } } = await axios.get('/api/getAllTests/');
         if (success) {
-          console.log('Tests fetched successfully:', message);
+          console.log(message);
           setDisplayedTests(allTests);
         }
       } catch (error) {
