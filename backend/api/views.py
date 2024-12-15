@@ -191,8 +191,10 @@ def deleteTest(request):
 
     try:
         test = Test.objects.get(test_id=test_id)
+        results = TestResult.objects.filter(test_id=test_id)
+        deleted_results_count = results.delete()
         test.delete()
-        return Response({"success": True, "message": "Test deleted successfully."}, status=200)
+        return Response({"success": True, "message": f"Test and {deleted_results_count} related results are deleted successfully."}, status=200)
     except Test.DoesNotExist:
         return Response({"success": False, "message": "Error: Test not found."}, status=404)
 
@@ -382,6 +384,7 @@ def getUserResults(request):
 
     data = [
         {
+            "resultId": result.result_id,
             "testId": result.test_id,
             "resultIndex": result.result_index,
             "answers": result.answers,
@@ -447,7 +450,7 @@ def updateTest(request):
 
 
 @api_view(['DELETE'])
-def deleteTestResult(request):
+def deleteResult(request):
     """
     Delete a user's test result.
     Input:
@@ -457,7 +460,9 @@ def deleteTestResult(request):
     """
     
     data = request.data
-    result_id = data.get('result_id')
+    result_id = data.get('resultId')
+
+    print(f"\n\n{result_id}\n\n")
     
     try:
         result = TestResult.objects.get(result_id=result_id)

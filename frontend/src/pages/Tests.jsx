@@ -5,19 +5,12 @@ import { useAuth } from '../context/AuthContext';
 import { TestSection } from '../components/TestSection';
 
 export default function Tests() {
-  const { deleteTest } = useTest();
-
   const { user } = useAuth();
-  const [displayedTests, setDisplayedTests] = useState([]);
+  const { deleteTest, displayedTests, setDisplayedTests } = useTest();
 
   const handleDelete = async (testId, testTitle) => {
     if (window.confirm(`確定要刪除「${testTitle}」這個測驗嗎？`)) {
-      const success = await deleteTest(testId);
-      if (success) {
-        setDisplayedTests(prevTests => 
-          prevTests.filter(test => String(test.id) !== String(testId))
-        );
-      }
+      await deleteTest(testId);
     }
   };
 
@@ -35,7 +28,7 @@ export default function Tests() {
     };
 
     fetchTests();
-  }, []);
+  }, [displayedTests]);
 
   const myTests = displayedTests.filter(test => test.userId === user.userId);
   const othersTests = displayedTests.filter(test => test.userId !== user.userId);

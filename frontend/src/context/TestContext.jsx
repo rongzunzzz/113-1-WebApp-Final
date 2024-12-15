@@ -9,14 +9,12 @@ export function TestProvider({ children }) {
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [displayedUserTests, setDisplayedUserTests] = useState([]);
-  const [displayedOthersTests, setDisplayedOthersTests] = useState([]);
-
   const [testResults, setTestResults] = useState(() => {
     const results = localStorage.getItem('testResults');
     return results ? JSON.parse(results) : [];
   });
 
+  const [displayedTests, setDisplayedTests] = useState([]);
   const [displayedResults, setDisplayedResults] = useState([]);
 
   // 添加刪除測驗函數
@@ -31,16 +29,25 @@ export function TestProvider({ children }) {
 
     if (success)  {
       setSavedTests(prev => prev.filter(test => test.testId !== testId));
-      // 同時刪除相關的測驗結果
-      setTestResults(prev => prev.filter(result => result.testId !== testId));
+      setTestResults(prev => prev.filter(result => result.testId !== testId));  // 同時刪除相關的測驗結果
     } 
-
-    return success;
   };
 
   // 添加刪除測驗結果函數
-  const deleteResult = (resultIndex) => {
-    setTestResults(prev => prev.filter((_, index) => index !== resultIndex));
+  const deleteResult = async (resultIndex) => {
+    console.log(resultIndex);
+    const {
+      data: { success, message }
+    } = await axios.delete('/api/deleteResult/', {
+      data: {
+        resultId: resultIndex,
+      }
+    })
+    console.log(message);
+
+    if (success) {
+      setDisplayedResults(prev => prev.filter(result => result.resultId !== resultIndex));
+    }
   };
 
   // 當測驗數據改變時，保存到 localStorage
@@ -140,10 +147,9 @@ export function TestProvider({ children }) {
   return (
     <TestContext.Provider value={{
       savedTests,
-      testResults,
+      displayedTests, setDisplayedTests,
 
-      displayedUserTests, setDisplayedUserTests,
-      displayedOthersTests, setDisplayedOthersTests,
+      testResults,
 
       addTest,
       addResult,

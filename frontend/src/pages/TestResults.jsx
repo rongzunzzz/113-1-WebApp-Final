@@ -3,9 +3,11 @@ import { useAuth } from '../context/AuthContext';
 import { Trash2, RefreshCw } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 export default function TestResults() {
+  const navigate = useNavigate();
   const { deleteResult, displayedResults, setDisplayedResults } = useTest();
   const { user } = useAuth();
   const [processedResults, setProcessedResults] = useState([]);
@@ -116,6 +118,10 @@ export default function TestResults() {
     setRetryCount(prev => prev + 1);
   };
 
+  const handleTitleClick = (testId) => {
+    navigate(`/test/${testId}`);
+  };
+
   return (
     <div className="max-w-3xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">測驗結果</h1>
@@ -163,11 +169,18 @@ export default function TestResults() {
               <div className="mb-6 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
                 <div className="flex justify-between items-center">
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900">{result.test.title}</h3>
-                    <p className="text-gray-600 text-sm">{new Date(result.date).toLocaleString()}</p>
+                    <h3 
+                      onClick={() => handleTitleClick(result.test.testId)}
+                      className="text-xl font-semibold text-gray-900 cursor-pointer hover:text-blue-600 hover:underline transition-colors"
+                    >
+                      {result.test.title}
+                    </h3>
+                    <p className="text-gray-600 text-sm">
+                      {new Date(result.date).toLocaleString()}
+                    </p>
                   </div>
                   <Button
-                    onClick={() => deleteResult(index)}
+                    onClick={() => deleteResult(result.resultId)}
                     className="bg-red-100 hover:bg-red-200 text-red-600 rounded-full"
                     variant="ghost"
                   >
@@ -207,10 +220,10 @@ export default function TestResults() {
                         className="p-4 bg-gray-50 rounded-lg border border-gray-200"
                       >
                         <p className="font-medium text-gray-900 mb-2">
-                          問題 {parseInt(qIndex) + 1}: {question?.question}
+                          問題 {parseInt(qIndex) + 1}: {question?.text}
                         </p>
                         <p className="text-gray-600">
-                          回答: {question?.options[answer]}
+                          你的答案: {question?.options[answer]}
                         </p>
                       </div>
                     );
