@@ -54,7 +54,7 @@ export default function TestResults() {
                         <img 
                           src={testResult.imageUrl} 
                           alt={testResult.title}
-                          className="w-full h-40 object-cover rounded-md"
+                          className="w-full h-auto max-h-[400px] object-contain rounded-md"
                         />
                       </div>
                     )}

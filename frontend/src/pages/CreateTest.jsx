@@ -469,14 +469,21 @@ export default function CreateTest() {
                         <img
                           src={result.imageUrl}
                           alt={result.title}
-                          className="w-full h-40 object-cover rounded-md"
+                          className="w-full h-auto max-h-[400px] object-contain rounded-md"
                         />
                         <Button
                           onClick={() => generateImage(result.description, index)}
+                          disabled={loading && generatingIndex === index}
                           className="absolute top-2 right-2 bg-white/80 hover:bg-white text-black text-sm px-2 py-1 rounded flex items-center"
                         >
-                          <ImageIcon className="w-4 h-4 mr-1" />
-                          <span>重新生成</span>
+                          {loading && generatingIndex === index ? (
+                            <span>生成中...</span>
+                          ) : (
+                            <>
+                              <ImageIcon className="w-4 h-4 mr-1" />
+                              <span>重新生成</span>
+                            </>
+                          )}
                         </Button>
                       </div>
                     ) : (
