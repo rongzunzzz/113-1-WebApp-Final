@@ -180,7 +180,11 @@ export default function TestResults() {
                     </p>
                   </div>
                   <Button
-                    onClick={() => deleteResult(result.resultId)}
+                    onClick={async () => {
+                      await deleteResult(result.resultId);
+                      navigate('/results');
+                      window.location.reload();
+                    }}
                     className="bg-red-100 hover:bg-red-200 text-red-600 rounded-full"
                     variant="ghost"
                   >
