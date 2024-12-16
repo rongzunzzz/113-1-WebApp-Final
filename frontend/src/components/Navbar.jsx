@@ -44,6 +44,12 @@ export function Navbar() {
                   >
                     測驗結果
                   </NavLink>
+                  <NavLink 
+                    to="/mytests" 
+                    className={navLinkStyle}
+                  >
+                    我的測驗
+                  </NavLink>
                 </>
               )}
             </div>

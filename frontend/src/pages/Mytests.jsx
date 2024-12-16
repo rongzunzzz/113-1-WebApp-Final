@@ -1,57 +1,66 @@
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 import { useTest } from '../context/TestContext';
-import { Button } from '../components/ui/button';
-import { Trash2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { TestSection } from '../components/TestSection';
 
-export default function Mytests() {
-  const { savedTests, deleteTest } = useTest();
+export default function MyTests() {
+  const { user } = useAuth();
+  const { deleteTest, displayedTests, setDisplayedTests } = useTest();
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleDelete = (testId, testTitle) => {
+  const handleDelete = async (testId, testTitle) => {
     if (window.confirm(`確定要刪除「${testTitle}」這個測驗嗎？`)) {
-      deleteTest(testId);
+      try {
+        await deleteTest(testId);
+        setDisplayedTests(prevTests => prevTests.filter(test => test.id !== testId));
+      } catch (error) {
+        console.error('Error deleting test:', error);
+      }
     }
   };
 
+  useEffect(() => {
+    const fetchTests = async () => {
+      setIsLoading(true);
+      try {
+        const response = await axios.get('/api/getAllTests/');
+        const { success, message, allTests } = response.data;
+        if (success) {
+          console.log(message);
+          const uniqueTests = Array.from(new Map(allTests.map(test => [test.id, test])).values());
+          setDisplayedTests(uniqueTests);
+        }
+      } catch (error) {
+        console.error('Error fetching tests:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTests();
+  }, [setDisplayedTests]);
+
+  const myTests = displayedTests.filter(test => test.userId === user.userId);
+
+  console.log('Displayed Tests:', displayedTests);
+
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">我的測驗</h1>
-      
-      {savedTests.length > 0 ? (
-        <div className="space-y-4">
-          {savedTests.map((test) => (
-            <div 
-              key={test.id} 
-              className="bg-white p-6 rounded-lg shadow-md border border-gray-200"
-            >
-              <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="text-xl font-semibold mb-2">{test.title}</h2>
-                  <p className="text-gray-600">
-                    共 {test.questions.length} 個問題
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Link to={`/test/${test.id}`}>
-                    <Button className="bg-custom-secondary hover:bg-black hover:text-white">
-                      編輯測驗
-                    </Button>
-                  </Link>
-                  <Button 
-                    onClick={() => handleDelete(test.id, test.title)}
-                    className="bg-white text-red-500 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ))}
+      {isLoading ? (
+        <div className="flex justify-center items-center h-screen">
+          <p className="text-lg font-semibold">Loading...</p>
+          <div className="mt-4 border-t-4 border-blue-500 rounded-full w-12 h-12 animate-spin"></div>
         </div>
       ) : (
-        <div className="text-center py-12">
-          <p className="text-gray-600">目前沒有可用的測驗</p>
-        </div>
+        <TestSection
+          title="我的測驗"
+          tests={myTests}
+          isOwner={true}
+          onDelete={handleDelete}
+          emptyMessage="你還沒有建立任何測驗"
+        />
       )}
     </div>
   );
-} 
+}
