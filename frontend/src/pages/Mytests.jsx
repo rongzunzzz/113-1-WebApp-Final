@@ -24,12 +24,16 @@ export default function MyTests() {
     const fetchTests = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get('/api/getAllTests/');
-        const { success, message, allTests } = response.data;
+        const {
+          data: { success, message, userTests }
+        } = await axios.get('/api/getUserTests/', {
+          params: {
+            userId: user.userId,
+          }
+        });
         if (success) {
           console.log(message);
-          const uniqueTests = Array.from(new Map(allTests.map(test => [test.id, test])).values());
-          setDisplayedTests(uniqueTests);
+          setDisplayedTests(userTests);
         }
       } catch (error) {
         console.error('Error fetching tests:', error);
