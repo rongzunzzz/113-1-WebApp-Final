@@ -12,6 +12,7 @@ import Home from './pages/Home';
 import Tests from './pages/Tests';
 import { TestProvider } from './context/TestContext';
 import EditTest from './pages/Edit';
+import Mytests from './pages/Mytests';
 
 const PsychologyTestApp = () => {
   return (
@@ -25,6 +26,7 @@ const PsychologyTestApp = () => {
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/tests" element={<Tests />} />
+                <Route path="/mytests" element={<Mytests />} />
                 <Route path="/edit/:testId" element={<EditTest />} />
                 <Route 
                   path="/create" 

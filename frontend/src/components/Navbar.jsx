@@ -1,8 +1,11 @@
 import { Link, NavLink } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/button';
 
 export function Navbar() {
+  const navigate = useNavigate();
+
   const { user, logout } = useAuth();
 
   const navLinkStyle = ({ isActive }) =>
@@ -30,7 +33,7 @@ export function Navbar() {
                 參與測驗
               </NavLink>
 
-              {user && (
+              {(JSON.stringify(user) !== '{}' || !user) && (
                 <>
                   <NavLink 
                     to="/create" 
@@ -44,17 +47,26 @@ export function Navbar() {
                   >
                     測驗結果
                   </NavLink>
+                  <NavLink 
+                    to="/mytests" 
+                    className={navLinkStyle}
+                  >
+                    我的測驗
+                  </NavLink>
                 </>
               )}
             </div>
           </div>
 
           <div className="flex items-center space-x-4">
-            {user ? (
+            {(JSON.stringify(user) !== '{}' || !user) ? (
               <div className="flex items-center space-x-4">
-                <span className="text-gray-700">{user.username}</span>
+                <span className="text-gray-700">{user?.username}</span>
                 <Button
-                  onClick={logout}
+                  onClick={async () => {
+                    await logout();
+                    navigate('/');
+                  }}
                   className="bg-gray-200 hover:bg-gray-300 text-gray-800"
                 >
                   登出

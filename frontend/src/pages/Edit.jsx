@@ -234,7 +234,7 @@ export default function EditTest() {
       
       // 最後才導航
       setTimeout(() => {
-        navigate('/tests');
+        navigate('/mytests');
       }, 0);
       
     } catch (error) {

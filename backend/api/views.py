@@ -316,7 +316,7 @@ def getUserResults(request):
     results = TestResult.objects.filter(user_id=user_id)
     if not results.exists():
         return Response({
-            "success": False, 
+            "success": True, 
             "message": "No user result exists", 
             "userResults": []
         }, status=200)

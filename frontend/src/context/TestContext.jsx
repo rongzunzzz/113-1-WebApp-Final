@@ -28,8 +28,8 @@ export function TestProvider({ children }) {
     console.log(message);
 
     if (success)  {
-      setSavedTests(prev => prev.filter(test => test.testId !== testId));
-      setTestResults(prev => prev.filter(result => result.testId !== testId));  // 同時刪除相關的測驗結果
+      setDisplayedTests(prev => prev.filter(test => test.testId !== testId));
+      setDisplayedResults(prev => prev.filter(result => result.testId !== testId));  // 同時刪除相關的測驗結果
     } 
   };
 

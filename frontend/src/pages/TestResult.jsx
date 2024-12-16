@@ -89,17 +89,22 @@ export default function TestResult() {
         </div>
 
         <div className="mt-8 space-y-4">
-          <Link to="/tests">
-            <Button className="w-full bg-custom-secondary hover:bg-black hover:text-white">
-              返回測驗列表
-            </Button>
-          </Link>
-          <Link to={`/test/${testId}`}>
-            <Button className="w-full bg-gray-200 hover:bg-gray-300 text-custom-black">
-              重新測驗
-            </Button>
-          </Link>
+          <div className="mb-4">
+            <Link to="/tests">
+              <Button className="w-full bg-custom-secondary hover:bg-black hover:text-white">
+                返回測驗列表
+              </Button>
+            </Link>
+          </div>
+          <div>
+            <Link to={`/test/${testId}`}>
+              <Button className="w-full bg-gray-200 hover:bg-gray-300 text-custom-black">
+                重新測驗
+              </Button>
+            </Link>
+          </div>
         </div>
+
       </div>
     </div>
   );
