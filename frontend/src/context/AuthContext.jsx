@@ -1,5 +1,4 @@
 import { createContext, useState, useContext, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const AuthContext = createContext();
@@ -11,7 +10,7 @@ export function AuthProvider({ children }) {
   });
 
   useEffect(() => {  // 當使用者狀態改變時，更新 localStorage
-    if (user) {
+    if (JSON.stringify(user) !== '{}') {
       localStorage.setItem('user', JSON.stringify(user));
     } else {
       localStorage.removeItem('user');
@@ -24,7 +23,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
-    setUser(null);
+    setUser({});
     localStorage.removeItem('user');
   };
 

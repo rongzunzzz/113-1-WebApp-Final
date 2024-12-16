@@ -6,6 +6,7 @@ import { ArrowRight, User, List, ClipboardList } from 'lucide-react';
 
 export default function Home() {
   const { user } = useAuth();
+  console.log(user)
   const { savedTests } = useTest();
 
   const recentTests = savedTests.slice(-4);
@@ -29,7 +30,7 @@ export default function Home() {
 
       {/* 功能卡片區 */}
       <section className="grid md:grid-cols-2 gap-8">
-        {user && (
+        {(JSON.stringify(user) !== '{}' || !user) && (
           <Link
             to="/create"
             className="bg-gradient-to-br from-gray-50 to-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-2"
@@ -57,7 +58,7 @@ export default function Home() {
           </p>
         </Link>
 
-        {user && (
+        {(JSON.stringify(user) !== '{}' || !user) && (
           <Link
             to="/results"
             className="bg-gradient-to-br from-gray-50 to-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-2"
@@ -72,12 +73,21 @@ export default function Home() {
           </Link>
         )}
 
-        {user && (
+        {(
           <div className="bg-gray-100 p-8 rounded-2xl shadow-inner text-gray-700 border border-gray-200">
-            <h2 className="text-2xl font-semibold mb-4">歡迎回來</h2>
-            <p>{user.username}，很高興再次見到您！</p>
+            <h2 className="text-2xl font-semibold mb-4">
+              {user
+                ? "歡迎回來" 
+                : "歡迎蒞臨我們的網站"}
+            </h2>
+            <p>
+              {(JSON.stringify(user) !== '{}' || !user)
+                ? `${user?.username}，很高興再次見到您！`
+                : "您現在以訪客身分瀏覽，登入後可享有更多功能。"}
+            </p>
           </div>
         )}
+
       </section>
 
       {/* 熱門測驗區 */}

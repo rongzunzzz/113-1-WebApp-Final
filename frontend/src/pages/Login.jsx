@@ -64,7 +64,8 @@ export default function Login() {
 
     try {
       await register(registerData.username, registerData.account, registerData.password);
-      navigate('/');
+      navigate('/login');
+      window.location.reload();
     } catch (err) {
       setError(err.message || '註冊失敗');
     }
