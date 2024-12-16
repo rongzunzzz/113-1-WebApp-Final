@@ -65,7 +65,7 @@ export default function TakeTest() {
       data: { success, message }
     } = await axios.post('/api/saveTestResult/', {
       testId: result.testId,
-      userId: user.userId,
+      userId: (JSON.stringify(user) !== '{}' || !user)? user.userId : `visitor_${Date.now()}`,
       answers: result.answers,
       resultIndex: result.resultIndex,
     });
