@@ -42,7 +42,7 @@ cd backend
 ### Create virtual environment(MacOS) and activate.
 ```bash
 python3 -m venv .venv
-.venv/bin/activate
+. .venv/bin/activate
 ```
 
 ### Install requirements.
