@@ -39,6 +39,11 @@ git push origin dev/frontend(backend)
 cd backend
 ```
 
+### Create an .env file first for mongodb uri and 
+```
+MONGO_URI=Your_Mongo_URI
+```
+
 ### Create virtual environment(MacOS) and activate.
 ```bash
 python3 -m venv .venv
